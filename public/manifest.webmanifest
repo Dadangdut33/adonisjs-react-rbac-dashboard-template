@@ -1,0 +1,64 @@
+{
+  "name": "My Website",
+  "short_name": "My Web",
+  "description": "This is my website",
+  "icons": [
+    {
+      "purpose": "maskable",
+      "sizes": "682.6666666666666x682.6666666666666",
+      "src": "maskable_icon.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "48x48",
+      "src": "maskable_icon_x48.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "72x72",
+      "src": "maskable_icon_x72.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "96x96",
+      "src": "maskable_icon_x96.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "128x128",
+      "src": "maskable_icon_x128.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "192x192",
+      "src": "maskable_icon_x192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "384x384",
+      "src": "maskable_icon_x384.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "maskable_icon_x512.png",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "oritentation": "portrait",
+  "start_url": "/",
+  "id": "/",
+  "dir": "ltr",
+  "lang": "en-US",
+  "categories": ["website"]
+}

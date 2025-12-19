@@ -1,0 +1,18 @@
+.root {
+  padding: rem(80px) 0;
+}
+
+.title {
+  text-align: center;
+  font-weight: 900;
+  font-size: rem(38px);
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    font-size: rem(32px);
+  }
+}
+
+.description {
+  max-width: rem(500px);
+  margin: auto;
+}

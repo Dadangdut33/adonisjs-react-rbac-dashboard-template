@@ -6,7 +6,7 @@ export default class extends BaseSeeder {
   async run() {
     const prefixes = ['user', 'role', 'permission']
     const permissionType = ['view', 'create', 'update', 'delete']
-    const manual = ['dashboard.view']
+    const manual = ['dashboard.view', 'profile.view', 'profile.update']
     const manualMapped = manual.map((manualName) => ({ name: manualName }))
 
     const permissions = prefixes.flatMap((prefix) =>

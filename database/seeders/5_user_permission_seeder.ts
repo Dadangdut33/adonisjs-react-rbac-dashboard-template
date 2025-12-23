@@ -7,7 +7,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 export default class extends BaseSeeder {
   async run() {
     // permissions for user role
-    const permissionForUser = ['dashboard.view']
+    const permissionForUser = ['dashboard.view', 'profile.view', 'profile.update']
     const permissions = await Permission.query().where('name', 'in', permissionForUser)
 
     // get user role

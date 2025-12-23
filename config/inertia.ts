@@ -20,14 +20,20 @@ const inertiaConfig = defineConfig({
         const u = ctx.auth ? ctx.auth.user : null
         if (!u) return null
 
+        // get the user permissions
+        const roles = await u.related('roles').query().preload('permissions')
+        const flatPermissions = roles.flatMap((r) => r.permissions.map((p) => p.name))
+        const uniquePermissions = Array.from(new Set(flatPermissions))
+
         return {
           id: u.id,
           username: u.username,
           full_name: u.full_name,
           email: u.email,
           is_email_verified: u.is_email_verified,
+          permissions: uniquePermissions,
         }
-      }) as unknown as null | User,
+      }) as unknown as null | (User & { permissions: string[] }),
     flashMessages: (ctx) => (ctx.session ? (ctx.session.flashMessages as FlashAlertType) : null),
     currentPath: (ctx) => ctx.request.url(false),
     previousPath: (ctx) => {

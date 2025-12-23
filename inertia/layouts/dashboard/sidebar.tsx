@@ -4,25 +4,20 @@ import User from '#models/user'
 
 import { SharedProps } from '@adonisjs/inertia/types'
 import { Link, usePage } from '@inertiajs/react'
+import { route } from '@izzyjs/route/client'
 import {
-  AudioWaveform,
-  BookOpen,
   Bot,
+  Boxes,
   ChevronRight,
   ChevronsUpDown,
-  Command,
-  Folder,
-  Forward,
-  Frame,
   GalleryVerticalEnd,
+  LayoutDashboard,
   LogOut,
-  Map,
-  MoreHorizontal,
-  PieChart,
-  Settings2,
+  ShieldUser,
   SquareTerminal,
-  Trash2,
   User2,
+  UserPen,
+  UsersRound,
 } from 'lucide-react'
 import * as React from 'react'
 import { useModals } from '~/components/core/modal-hooks'
@@ -45,7 +40,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -58,132 +52,179 @@ import { useAvatar } from '~/hooks/use_avatar'
 import { useLogout } from '~/hooks/use_logout'
 import { getInitials } from '~/lib/utils'
 
+type MenuItem = {
+  title: string
+  url: string
+  icon?: React.ComponentType<{ className?: string }>
+  flat?: boolean
+  items?: {
+    title: string
+    url: string
+    requiredPermission?: string
+  }[]
+  requiredPermission?: string
+}
+
+type SidebarMenuEntryProps = {
+  item: MenuItem
+  currentPath: string
+  userPermissions: string[]
+}
+
+export function SidebarMenuEntry({ item, currentPath, userPermissions }: SidebarMenuEntryProps) {
+  // ─────────────────────────────────────────────
+  // Flat menu item
+  // ─────────────────────────────────────────────
+  if (item.flat) {
+    if (item.requiredPermission && !userPermissions.includes(item.requiredPermission)) {
+      return null
+    }
+
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          tooltip={item.title}
+          isActive={currentPath === item.url}
+          className="data-[state=open]:bg-main data-[state=open]:outline-border data-[state=open]:text-main-foreground"
+        >
+          <Link href={item.url}>
+            {item.icon && <item.icon />}
+            <span>{item.title}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  }
+
+  // ─────────────────────────────────────────────
+  // Collapsible menu item
+  // ─────────────────────────────────────────────
+  const isGroupActive = currentPath.startsWith(item.url)
+
+  if (item.requiredPermission && !userPermissions.includes(item.requiredPermission)) {
+    return null
+  }
+
+  return (
+    <Collapsible asChild defaultOpen={isGroupActive} className="group/collapsible">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={item.title}
+            isActive={isGroupActive}
+            className="data-[state=open]:bg-main data-[state=open]:outline-border data-[state=open]:text-main-foreground"
+          >
+            {item.icon && <item.icon />}
+            <span className="text-sm">{item.title}</span>
+            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {item.items?.map((subItem) => {
+              if (
+                subItem.requiredPermission &&
+                !userPermissions.includes(subItem.requiredPermission)
+              ) {
+                return null
+              }
+
+              return (
+                <SidebarMenuSubItem key={subItem.title}>
+                  <SidebarMenuSubButton asChild isActive={currentPath === subItem.url}>
+                    <Link href={subItem.url}>
+                      <span>{subItem.title}</span>
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              )
+            })}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
+
 // This is sample data.
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  teams: [
+  flat: [
     {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
+      title: 'Dashboard',
+      url: route('dashboard').path,
+      icon: LayoutDashboard,
+      flat: true,
+      requiredPermission: 'dashboard.view',
     },
   ],
-  navMain: [
+  menu: [
     {
-      title: 'Playground',
+      title: 'need dashboard.view',
       url: '#',
       icon: SquareTerminal,
-      isActive: true,
       items: [
         {
-          title: 'History',
+          title: 'Submenu 1 (need profile.view)',
+          url: '#',
+          requiredPermission: 'profile.view',
+        },
+        {
+          title: 'Submenu 2 (no perm needed)',
           url: '#',
         },
         {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
+          title: 'Submenu 3 (no perm needed)',
           url: '#',
         },
       ],
+      requiredPermission: 'dashboard.view',
     },
     {
-      title: 'Models',
+      title: 'no perm needed',
       url: '#',
       icon: Bot,
       items: [
         {
-          title: 'Genesis',
+          title: 'Submenu 1',
           url: '#',
         },
         {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
+          title: 'Submenu 2',
           url: '#',
         },
       ],
     },
     {
-      title: 'Documentation',
+      title: 'Profile',
       url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
+      icon: UserPen,
+      flat: true,
+      requiredPermission: 'profile.view',
     },
   ],
-  projects: [
+  management: [
     {
-      name: 'Design Engineering',
+      title: 'Users',
       url: '#',
-      icon: Frame,
+      icon: UsersRound,
+      flat: true,
+      requiredPermission: 'user.view',
     },
     {
-      name: 'Sales & Marketing',
+      title: 'Roles',
       url: '#',
-      icon: PieChart,
+      icon: Boxes,
+      flat: true,
+      requiredPermission: 'role.view',
     },
     {
-      name: 'Travel',
+      title: 'Permissions',
       url: '#',
-      icon: Map,
+      icon: ShieldUser,
+      flat: true,
+      requiredPermission: 'permission.view',
     },
   ],
 }
@@ -236,92 +277,45 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar> & 
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
-            {data.navMain.map((item) => (
-              <Collapsible
+            {data.flat.map((item) => (
+              <SidebarMenuEntry
                 key={item.title}
-                asChild
-                defaultOpen={item.isActive}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      className="data-[state=open]:bg-main data-[state=open]:outline-border data-[state=open]:text-main-foreground"
-                      tooltip={item.title}
-                    >
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <a href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </a>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
+                item={item}
+                currentPath={sharedProps.currentPath}
+                userPermissions={sharedProps.user?.permissions || []}
+              />
             ))}
           </SidebarMenu>
         </SidebarGroup>
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroup>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
-            {data.projects.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url}>
-                    <item.icon />
-                    <span>{item.name}</span>
-                  </a>
-                </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction>
-                      <MoreHorizontal className="group-hover/menu-item:text-main-foreground" />
-                      <span className="sr-only">More</span>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-48"
-                    side={isMobile ? 'bottom' : 'right'}
-                    align={isMobile ? 'end' : 'start'}
-                  >
-                    <DropdownMenuItem>
-                      <Folder />
-                      <span>View Project</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Forward />
-                      <span>Share Project</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Trash2 />
-                      <span>Delete Project</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
+            {data.menu.map((item) => (
+              <SidebarMenuEntry
+                key={item.title}
+                item={item}
+                currentPath={sharedProps.currentPath}
+                userPermissions={sharedProps.user?.permissions || []}
+              />
             ))}
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <MoreHorizontal />
-                <span>More</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarMenu>
+            {data.management.map((item) => (
+              <SidebarMenuEntry
+                key={item.title}
+                item={item}
+                currentPath={sharedProps.currentPath}
+                userPermissions={sharedProps.user?.permissions || []}
+              />
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

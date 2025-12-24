@@ -7,10 +7,24 @@ export function mapRequestToQueryParams<T>(request: HttpContext['request']): Que
   return {
     page: request.input('page', 1),
     perPage: request.input('perPage', 10),
+
+    // global search (?search=john)
     search: request.input('search', ''),
+
+    // column search (?searchBy[username]=john&searchBy[email]=gmail)
+    searchBy: request.input('searchBy', {}),
+
     sortBy: request.input('sortBy'),
     sortDirection: request.input('sortDirection', 'asc'),
   }
+}
+
+export function parseRelationColumn(key: string) {
+  const parts = key.split('.')
+  if (parts.length === 2) {
+    return { relation: parts[0], column: parts[1] }
+  }
+  return null
 }
 
 export function getMethodActName(request: HttpContext['request']) {

@@ -1,7 +1,7 @@
 import { loginValidator, registerValidator, resetPasswordValidator } from '#validators/auth/auth'
 import { createEditPermissionValidator } from '#validators/auth/permission'
 import { createEditRoleValidator } from '#validators/auth/role'
-import { updateProfileValidator } from '#validators/profile'
+import { createProfileValidator, updateProfileValidator } from '#validators/profile'
 import { createEditUserValidator } from '#validators/users'
 
 import { Infer } from '@vinejs/vine/types'
@@ -14,4 +14,5 @@ export type UserPayload = Infer<typeof createEditUserValidator>
 export type RolePayload = Infer<typeof createEditRoleValidator>
 export type PermissionPayload = Infer<typeof createEditPermissionValidator>
 
-export type ProfilePayload = Infer<typeof updateProfileValidator>
+export type UpdateProfilePayload = Infer<typeof updateProfileValidator>
+export type CreateProfilePayload = Infer<typeof createProfileValidator>

@@ -18,31 +18,58 @@ export default class MediaService {
     this.disk = drive.use()
   }
 
-  async replace(file: MultipartFile, { media, keyPrefix }: { media?: Media; keyPrefix: string }) {
+  async replace(
+    file: MultipartFile,
+    { media, keyPrefix, onDupe }: { media?: Media; keyPrefix: string; onDupe?: 'add' | 'use_old' }
+  ) {
     if (media) await this.delete(media)
-    return this.upload(file, keyPrefix)
+    return this.upload(file, { keyPrefix, onDupe })
   }
 
   async replaceById(
     file: MultipartFile,
-    { id, keyPrefix }: { id?: string | null; keyPrefix: string }
+    { id, keyPrefix, onDupe }: { id?: string | null; keyPrefix: string; onDupe?: 'add' | 'use_old' }
   ) {
     if (id) this.deleteById(id)
-    return this.upload(file, keyPrefix)
+    return this.upload(file, { keyPrefix, onDupe })
   }
 
-  async upload(file: MultipartFile, keyPrefix: string): Promise<Media> {
+  getKeyPrefix(key: string) {
+    return key.split('/')[0]
+  }
+
+  /**
+   * Upload the file to the drive.
+   *
+   * onDupe behavior:
+   * - 'add': Always store a new physical file, even if an identical hash exists.
+   *   This is the safest default because each media record owns its file and
+   *   deletion cannot affect other references.
+   *
+   * - 'use_old': Reuse an existing media record with the same content hash.
+   *   This reduces storage duplication but should only be used when media is
+   *   immutable and deletion semantics are well-defined (e.g. soft-delete or
+   *   reference-counted).
+   *
+   * The default is 'add' to avoid accidental data loss from shared files.
+   */
+  async upload(
+    file: MultipartFile,
+    { keyPrefix, onDupe = 'add' }: { keyPrefix: string; onDupe?: 'add' | 'use_old' }
+  ): Promise<Media> {
     if (!file.tmpPath) throw new Error('File upload failed, temporary path not available.')
 
     const buffer = await readFile(file.tmpPath)
     const hash = crypto.createHash('sha256').update(buffer).digest('hex')
 
-    const existingMedia = await this.repo.findBy('hash', hash)
-    if (existingMedia) {
-      // If media exists, we don't need the new upload, so delete it.
-      if (file.tmpPath) await unlink(file.tmpPath)
+    if (onDupe === 'use_old') {
+      const existingMedia = await this.repo.findBy('hash', hash)
 
-      return existingMedia
+      // we only want to use found old media, if the keyPrefix / identifier is the same
+      if (existingMedia && this.getKeyPrefix(existingMedia.drive_key) === keyPrefix) {
+        if (file.tmpPath) await unlink(file.tmpPath)
+        return existingMedia
+      }
     }
 
     const now = new Date().getTime()
@@ -63,7 +90,6 @@ export default class MediaService {
   }
 
   async delete(media: Media) {
-    await this.disk.delete(media.drive_key)
     await this.repo.deleteGeneric(String(media.id))
 
     return true

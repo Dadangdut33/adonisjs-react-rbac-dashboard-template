@@ -13,6 +13,10 @@ export default class UserService {
     return await this.repo.query(queryParams)
   }
 
+  async findById(id: string) {
+    return await this.repo.findById(id)
+  }
+
   async createUpdate(data: UserPayload) {
     return this.repo.updateOrCreateUser(data)
   }

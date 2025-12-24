@@ -4,10 +4,10 @@ import { route } from '@izzyjs/route/client'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '~/lib/axios'
 
-async function fetchAvatar(): Promise<string | undefined> {
+async function fetchAvatar(): Promise<string | null> {
   const { data } = await api.get<BaseAPIResponse<string>>(route('api.v1.me.avatar').path)
 
-  return data.data
+  return data.data ?? null
 }
 
 export function useAvatar() {
@@ -18,5 +18,5 @@ export function useAvatar() {
     retry: false,
   })
 
-  return data
+  return data ?? undefined
 }

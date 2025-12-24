@@ -24,7 +24,7 @@ import { useIsReady } from '~/hooks/use_is_ready'
 import { useLogout } from '~/hooks/use_logout'
 import AuthLayout from '~/layouts/auth'
 import { TIMEOUT_SHORT } from '~/lib/constants'
-import { checkForm, cn } from '~/lib/utils'
+import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
 export default function Page(
   props: SharedProps & InferPageProps<AuthController, 'viewVerifyEmail'>
@@ -90,7 +90,7 @@ export default function Page(
     },
   })
   const doMutate = () => {
-    if (!checkForm(form, { bypass_captcha: props.bypass_captcha })) return
+    if (!checkFormWithCaptcha(form, { bypass_captcha: props.bypass_captcha })) return
     if (isTimedOut)
       return NotifyError('Error', 'Please wait until you can request another email verification.')
 

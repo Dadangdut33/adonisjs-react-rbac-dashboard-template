@@ -19,7 +19,7 @@ import { Input } from '~/components/ui/input'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
 import { PASS_REGEX } from '~/lib/constants'
-import { checkForm, cn } from '~/lib/utils'
+import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
 export default function Page(
   props: SharedProps & InferPageProps<AuthController, 'viewResetPassword'>
@@ -53,7 +53,7 @@ export default function Page(
     },
   })
   const doMutate = () => {
-    if (!checkForm(form, { bypass_captcha: props.bypass_captcha })) return
+    if (!checkFormWithCaptcha(form, { bypass_captcha: props.bypass_captcha })) return
     mutation.mutate(form.values)
   }
 

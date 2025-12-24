@@ -1,10 +1,10 @@
 import Media from '#models/media'
 import MediaRepository from '#repositories/media.repository'
+import env from '#start/env'
 
 import { inject } from '@adonisjs/core'
 import { MultipartFile } from '@adonisjs/core/bodyparser'
 import { cuid } from '@adonisjs/core/helpers'
-import app from '@adonisjs/core/services/app'
 import { Disk } from '@adonisjs/drive'
 import drive from '@adonisjs/drive/services/main'
 import crypto from 'node:crypto'
@@ -13,14 +13,27 @@ import { readFile, unlink } from 'node:fs/promises'
 @inject()
 export default class MediaService {
   private disk: Disk
+  private S3_ViSIBILITY: string = env.get('S3_VISIBILITY')
   constructor(protected repo: MediaRepository) {
     this.disk = drive.use()
   }
 
-  async upload(file: MultipartFile): Promise<Media> {
-    if (!file.tmpPath) {
-      throw new Error('File upload failed, temporary path not available.')
-    }
+  async replace(file: MultipartFile, { media, keyPrefix }: { media?: Media; keyPrefix: string }) {
+    if (media) await this.delete(media)
+    return this.upload(file, keyPrefix)
+  }
+
+  async replaceById(
+    file: MultipartFile,
+    { id, keyPrefix }: { id?: string | null; keyPrefix: string }
+  ) {
+    if (id) this.deleteById(id)
+    return this.upload(file, keyPrefix)
+  }
+
+  async upload(file: MultipartFile, keyPrefix: string): Promise<Media> {
+    if (!file.tmpPath) throw new Error('File upload failed, temporary path not available.')
+
     const buffer = await readFile(file.tmpPath)
     const hash = crypto.createHash('sha256').update(buffer).digest('hex')
 
@@ -32,13 +45,14 @@ export default class MediaService {
       return existingMedia
     }
 
-    const driveKey = `${cuid()}.${file.extname}`
-    await file.moveToDisk(app.makePath('uploads'), {
-      name: driveKey,
+    const now = new Date().getTime()
+    const key = keyPrefix + '/' + `${now}-${cuid()}.${file.extname}`
+    await file.moveToDisk(key, {
+      name: file.clientName,
     })
 
     const media = await this.repo.createGeneric({
-      drive_key: driveKey,
+      drive_key: key,
       name: file.clientName,
       extension: file.extname,
       mime_type: `${file.type}/${file.subtype}`,
@@ -48,8 +62,101 @@ export default class MediaService {
     return media as Media
   }
 
-  async delete(media: Media): Promise<void> {
+  async delete(media: Media) {
     await this.disk.delete(media.drive_key)
     await this.repo.deleteGeneric(String(media.id))
+
+    return true
+  }
+
+  async deleteById(id: string) {
+    const media = await this.repo.findById(id)
+    if (!media) return false
+
+    await this.disk.delete(media.drive_key)
+    await this.repo.deleteGeneric(id)
+
+    return true
+  }
+
+  // ---------------------------
+  // It is very recommended to have your drive set to private!!
+  // This is to prevent data from being accessed withoout credentials and crawlers
+  // Also, notes: Im not sure if this works for local file system.
+  // ---------------------------
+  /**
+   * Here, We check automatically from env to make it easier.
+   * Check the code below for the methods itself
+   */
+  async getMediaURL(media: Media) {
+    if (this.S3_ViSIBILITY === 'private') return this.getMediaURLPrivate(media)
+    return this.getMediaURLPublic(media)
+  }
+
+  async getMediaURLById(id: string) {
+    if (this.S3_ViSIBILITY === 'private') return this.getMediaURLPrivateById(id)
+    return this.getMediaURLPublicById(id)
+  }
+
+  async getMediaURLByKey(key: string) {
+    if (this.S3_ViSIBILITY === 'private') return this.getMediaURLPrivateByKey(key)
+    return this.getMediaURLPublicByKey(key)
+  }
+
+  /**
+   * This for public drive!
+   * Not recommended at all
+   */
+  async getMediaURLPublic(media: Media) {
+    return this.disk.getUrl(media.drive_key)
+  }
+
+  async getMediaURLPublicById(id: string) {
+    const media = await this.repo.findById(id)
+    if (!media) return null
+
+    return this.disk.getUrl(media.drive_key)
+  }
+
+  async getMediaURLPublicByKey(key: string) {
+    return this.disk.getUrl(key)
+  }
+
+  /**
+   * This is for private drive!
+   * We use signed url for temporary access
+   */
+  async getMediaURLPrivate(media: Media) {
+    return this.disk.getSignedUrl(media.drive_key)
+  }
+
+  async getMediaURLPrivateById(id: string) {
+    const media = await this.repo.findById(id)
+    if (!media) return null
+
+    return this.disk.getSignedUrl(media.drive_key)
+  }
+
+  async getMediaURLPrivateByKey(key: string) {
+    return this.disk.getSignedUrl(key)
+  }
+
+  /**
+   * This one is for getting the media stream, you can use it if you want
+   * to maybe proxy the media in this case
+   */
+  async getMediaStream(media: Media) {
+    return this.disk.getStream(media.drive_key)
+  }
+
+  async getMediaStreamById(id: string) {
+    const media = await this.repo.findById(id)
+    if (!media) return null
+
+    return this.disk.getStream(media.drive_key)
+  }
+
+  async getMediaStreamByKey(key: string) {
+    return this.disk.getStream(key)
   }
 }

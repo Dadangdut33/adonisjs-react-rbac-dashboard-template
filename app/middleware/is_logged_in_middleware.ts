@@ -10,7 +10,7 @@ export default class IsLoggedInMiddleware {
   /**
    * The URL to redirect to when user is logged-in
    */
-  redirect_to = route('dashboard').path
+  redirect_to = route('dashboard.view').path
 
   async handle(
     ctx: HttpContext,

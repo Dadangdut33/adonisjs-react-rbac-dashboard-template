@@ -1,33 +1,39 @@
-import { getMethodActName, mapRequestToQueryParams, throwForbidden } from '#lib/utils'
+import { getMethodActName, throwForbidden } from '#lib/utils'
+import Media from '#models/media'
+import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
 import ProfileService from '#services/profile.service'
 import { updateProfileValidator } from '#validators/profile'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import logger from '@adonisjs/core/services/logger'
 
 @inject()
 export default class ProfileController {
   constructor(
-    protected service: ProfileService,
+    protected profileSvc: ProfileService,
+    protected mediaSvc: MediaService,
     protected permChecker: PermissionCheckService
   ) {}
 
-  async view({ request, response, bouncer, auth, inertia }: HttpContext) {
+  async view({ bouncer, auth, inertia }: HttpContext) {
     const userId = auth.user?.id
     if (await bouncer.with('ProfilePolicy').denies('view', userId!)) return throwForbidden()
 
-    try {
-      const q = mapRequestToQueryParams(request)
-      const data = await this.service.index(q)
-
-      return inertia.render('dashboard/profile', data)
-    } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+    auth.user!.load('roles') // load roles
+    const data = await this.profileSvc.findByUid(userId!)
+    if (!data) {
+      logger.warn("Profile somehow doesn't exist???", 'PROFILE_VIEW_DOES_NOT_EXIST ' + userId!)
+      // create a new empty profile
+      await this.profileSvc.create({ user_id: userId! })
+      logger.info(
+        "Profile created because it somehow doesn't exist",
+        'PROFILE_VIEW_CREATED ' + userId!
+      )
     }
+
+    return inertia.render('dashboard/profile', { profile: data, roles: auth.user?.roles })
   }
 
   async update({ bouncer, request, response, auth }: HttpContext) {
@@ -38,7 +44,16 @@ export default class ProfileController {
       if (await bouncer.with('ProfilePolicy').denies('update', userId!, request))
         return throwForbidden()
 
-      await this.service.update(userId!, data)
+      let media: Media | null = null
+      const profile = await this.profileSvc.findByUid(userId!)
+
+      if (data.avatar)
+        media = await this.mediaSvc.replaceById(data.avatar, {
+          id: profile?.avatar_id!,
+          keyPrefix: userId!,
+        })
+
+      await this.profileSvc.update(userId!, { ...data, avatar_id: media?.id })
 
       return response.status(200).json({
         status: 'success',
@@ -57,11 +72,12 @@ export default class ProfileController {
       const userId = auth.user?.id
       if (await bouncer.with('ProfilePolicy').denies('view', userId!)) return throwForbidden()
 
-      const avatar = await this.service.getAvatar(userId!)
+      const profile = await this.profileSvc.findByUid(userId!)
+      const url = await this.mediaSvc.getMediaURLById(profile?.avatar_id!)
 
       return response.status(200).json({
         status: 'success',
-        data: avatar,
+        data: url,
       })
     } catch (error) {
       return response.status(error.status || 500).json({

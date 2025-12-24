@@ -2,7 +2,7 @@ import { BaseAPIResponse } from '#types/api'
 
 import { router } from '@inertiajs/react'
 import { UseMutationOptions, UseMutationResult, useMutation } from '@tanstack/react-query'
-import { AxiosError, Method } from 'axios'
+import { AxiosError, AxiosHeaders, Method, RawAxiosRequestHeaders } from 'axios'
 import { NotifyError, NotifySuccess } from '~/components/core/notify'
 import { api } from '~/lib/axios'
 
@@ -12,9 +12,21 @@ export function useGenericMutation<
 >(
   method: Method,
   url: string,
-  options?: UseMutationOptions<TResponse, AxiosError<TResponse>, TData> & { doRedirect?: boolean }
+  options?: UseMutationOptions<TResponse, AxiosError<TResponse>, TData> & {
+    doRedirect?: boolean
+    headers?: RawAxiosRequestHeaders | AxiosHeaders
+  }
 ): UseMutationResult<TResponse, AxiosError<TResponse>, TData> {
-  const { onSuccess, onError, doRedirect = true, ...rest } = options ?? {}
+  const {
+    onSuccess,
+    onError,
+    doRedirect = true,
+    headers = {
+      'Content-Type': 'multipart/form-data',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    ...rest
+  } = options ?? {}
 
   // Track if onError has already fired
   let errorHandled = false
@@ -27,7 +39,9 @@ export function useGenericMutation<
         method,
         url,
         data,
+        headers,
       })
+
       return res.data
     },
 

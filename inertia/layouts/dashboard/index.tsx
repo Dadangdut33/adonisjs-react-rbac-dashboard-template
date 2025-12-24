@@ -38,15 +38,15 @@ export default function DashboardLayout({
                   <React.Fragment key={index}>
                     <BreadcrumbItem>
                       {item.href ? (
-                        <Link href={item.href}>
-                          <BreadcrumbLink>{item.title}</BreadcrumbLink>
-                        </Link>
+                        <BreadcrumbLink asChild>
+                          <Link href={item.href}>{item.title}</Link>
+                        </BreadcrumbLink>
                       ) : (
                         <BreadcrumbPage>{item.title}</BreadcrumbPage>
                       )}
                     </BreadcrumbItem>
                     {index < breadcrumbs.length - 1 && (
-                      <BreadcrumbSeparator className="hidden md:block" key={`sep-${index}`} />
+                      <BreadcrumbSeparator className="block" key={`sep-${index}`} />
                     )}
                   </React.Fragment>
                 ))}

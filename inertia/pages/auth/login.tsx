@@ -14,7 +14,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
-import { checkForm, cn } from '~/lib/utils'
+import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
 export default function Page(props: SharedProps & InferPageProps<AuthController, 'viewLogin'>) {
   const form = useForm({
@@ -29,6 +29,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
       cf_token: (value) => (value.length > 0 ? null : 'Captcha is required'),
     },
   })
+
   const mutation = useGenericMutation('POST', route('auth.login.post').path, {
     onError(error, _variables, _context) {
       if (error.response?.data.form_errors) {
@@ -36,8 +37,9 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
       }
     },
   })
+
   const doMutate = () => {
-    if (!checkForm(form, { bypass_captcha: props.bypass_captcha })) return
+    if (!checkFormWithCaptcha(form, { bypass_captcha: props.bypass_captcha })) return
     mutation.mutate(form.values)
   }
 

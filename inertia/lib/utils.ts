@@ -43,7 +43,9 @@ export function formErrorsToString(err: FormErrors) {
 // If there are errors, we notify the user and return false
 // If there are no errors, we return true
 // A simple captcha check is done if bypass_captcha is true
-export function checkForm<TValues extends Record<string, unknown> = Record<string, unknown>>(
+export function checkFormWithCaptcha<
+  TValues extends Record<string, unknown> = Record<string, unknown>,
+>(
   form: UseFormReturnType<TValues>,
   { bypass_captcha }: { bypass_captcha?: boolean } = { bypass_captcha: false }
 ) {
@@ -55,6 +57,17 @@ export function checkForm<TValues extends Record<string, unknown> = Record<strin
       console.log('Captcha bypassed because bypass_captcha is true')
       return true
     }
+    // else we notify the user and return false
+    NotifyError('Error in form', formErrorsToString(errors))
+  }
+  return !hasErrors // we return true if there are no errors
+}
+
+export function checkForm<TValues extends Record<string, unknown> = Record<string, unknown>>(
+  form: UseFormReturnType<TValues>
+) {
+  const { hasErrors, errors } = form.validate()
+  if (hasErrors) {
     // else we notify the user and return false
     NotifyError('Error in form', formErrorsToString(errors))
   }

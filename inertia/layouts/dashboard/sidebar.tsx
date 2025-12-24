@@ -153,7 +153,7 @@ const data = {
   flat: [
     {
       title: 'Dashboard',
-      url: route('dashboard').path,
+      url: route('dashboard.view').path,
       icon: LayoutDashboard,
       flat: true,
       requiredPermission: 'dashboard.view',
@@ -198,7 +198,7 @@ const data = {
     },
     {
       title: 'Profile',
-      url: '#',
+      url: route('profile.view').path,
       icon: UserPen,
       flat: true,
       requiredPermission: 'profile.view',

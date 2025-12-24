@@ -18,4 +18,5 @@ export interface BaseAPIResponse<T = any> {
   data?: T
   redirect_to?: string
   form_errors?: FormErrors
+  unique_error_uuid?: string
 }

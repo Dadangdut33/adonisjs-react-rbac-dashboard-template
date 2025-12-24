@@ -14,6 +14,7 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import logger from '@adonisjs/core/services/logger'
 import { route } from '@izzyjs/route/client'
+import { randomUUID } from 'node:crypto'
 
 @inject()
 export default class AuthController {
@@ -59,7 +60,7 @@ export default class AuthController {
 
   async viewVerifyEmail({ inertia, response, auth }: HttpContext) {
     // if already verified, redirect to dashboard
-    if (auth.user?.is_email_verified) return response.redirect().toRoute('dashboard')
+    if (auth.user?.is_email_verified) return response.redirect().toRoute('dashboard.view')
     return inertia.render('auth/verifyEmail', { ...this.baseProp })
   }
 
@@ -88,14 +89,16 @@ export default class AuthController {
         status: 'success',
         message: 'Login successful',
         data: { user: user.toJSON() },
-        redirect_to: route('dashboard').path,
+        redirect_to: route('dashboard.view').path,
       })
     } catch (error) {
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_LOGIN_USER')
+      const uuid = randomUUID()
+      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_LOGIN_USER ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errorss: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -122,11 +125,13 @@ export default class AuthController {
         redirect_to: route('auth.login').path,
       })
     } catch (error) {
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REGISTER_USER')
+      const uuid = randomUUID()
+      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REGISTER_USER ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -152,7 +157,7 @@ export default class AuthController {
         return response.status(200).json({
           status: 'success',
           message: 'User is already verified',
-          redirect_to: route('dashboard').path,
+          redirect_to: route('dashboard.view').path,
         })
 
       await this.service.requestEmail(user)
@@ -162,11 +167,13 @@ export default class AuthController {
         message: 'Request for new email verification sent successfully',
       })
     } catch (error) {
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REQUEST_VERIFY_EMAIL')
+      const uuid = randomUUID()
+      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REQUEST_VERIFY_EMAIL ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -187,13 +194,15 @@ export default class AuthController {
 
       // redirect to dashboard immediately, because this is a one time request that is only a link
       session.flash('success', 'Email verified successfully')
-      return response.redirect().toRoute('dashboard')
+      return response.redirect().toRoute('dashboard.view')
     } catch (error) {
-      logger.error(error, 'AUTH_VERIFY_EMAIL')
+      const uuid = randomUUID()
+      logger.error(error, 'AUTH_VERIFY_EMAIL ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -220,11 +229,14 @@ export default class AuthController {
         message: 'Password reset email sent successfully',
       })
     } catch (error) {
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REQUEST_RESET_PASSWORD')
+      const uuid = randomUUID()
+      if (error.type !== 'ValidationError')
+        logger.error(error, 'AUTH_REQUEST_RESET_PASSWORD ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -246,11 +258,13 @@ export default class AuthController {
         redirect_to: route('auth.login').path,
       })
     } catch (error) {
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_RESET_PASSWORD')
+      const uuid = randomUUID()
+      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_RESET_PASSWORD ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }
@@ -284,11 +298,13 @@ export default class AuthController {
         })
       }
     } catch (error) {
-      logger.error(error, 'AUTH_LOGOUT')
+      const uuid = randomUUID()
+      logger.error(error, 'AUTH_LOGOUT ' + uuid)
       return response.status(error.status || 500).json({
         status: 'error',
         message: reqErrorsToString(error) || error.message || 'Something went wrong',
         form_errors: mapReqErrors(error),
+        unique_error_uuid: uuid,
       })
     }
   }

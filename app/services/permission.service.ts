@@ -10,7 +10,8 @@ export default class PermissionService {
   constructor(protected repo: PermissionRepository) {}
 
   async index(queryParams: QueryBuilderParams<typeof Permission>) {
-    return await this.repo.query(queryParams)
+    const q = this.repo.query(queryParams)
+    return await this.repo.paginate(q, queryParams)
   }
 
   async create(data: PermissionPayload) {

@@ -20,7 +20,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import * as React from 'react'
-import { useModals } from '~/components/core/modal-hooks'
+import { useModals } from '~/components/core/modal/modal-hooks'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible'
 import {
@@ -221,7 +221,7 @@ const data = {
     },
     {
       title: 'Permissions',
-      url: route('permissions.view').path,
+      url: route('permission.index').path,
       icon: ShieldUser,
       flat: true,
       requiredPermission: 'permission.view',

@@ -11,6 +11,7 @@ export default function Home(props: SharedProps) {
           href: props.currentPath,
         },
       ]}
+      className="gap-4"
     >
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
         <div className="aspect-video rounded-base bg-background/50 border-2 border-border" />

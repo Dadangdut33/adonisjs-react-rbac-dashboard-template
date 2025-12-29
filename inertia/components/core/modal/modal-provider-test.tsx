@@ -21,7 +21,7 @@ export function ModalProviderTest() {
   })
 
   const addModal = ConfirmAddModal({
-    data: 'test data',
+    name: 'test data',
     onConfirm: () => {
       console.log('Add confirmed')
     },
@@ -31,7 +31,7 @@ export function ModalProviderTest() {
   })
 
   const deleteModal = ConfirmDeleteModal({
-    data: 'this item',
+    name: 'this item',
     extra: ' This action cannot be undone.',
     onConfirm: () => {
       console.log('Delete confirmed')

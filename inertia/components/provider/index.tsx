@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 import TextLoad from '~/components/loading/loader-text'
 import { Toaster } from '~/components/ui/sonner'
 
-import { ModalProvider } from '../core/modal-context'
+import { ModalProvider } from '../core/modal/modal-context'
 import { ThemeSwitcher } from '../core/theme-switcher'
 
 const queryClient = new QueryClient()

@@ -1,32 +1,51 @@
-import { getMethodActName, mapRequestToQueryParams, throwForbidden } from '#lib/utils'
+import {
+  getMethodActName,
+  mapRequestToQueryParams,
+  throwForbidden,
+  throwNotFound,
+} from '#lib/utils'
 import PermissionService from '#services/permission.service'
 import PermissionCheckService from '#services/permission_check.service'
+import { PaginationMeta } from '#types/app'
 import { createEditPermissionValidator } from '#validators/auth/permission'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 
+import { PermissionDto } from '../dtos/permission_dto.js'
+
 @inject()
 export default class PermissionController {
   constructor(
-    protected service: PermissionService,
+    protected permSvc: PermissionService,
     protected permChecker: PermissionCheckService
   ) {}
 
-  async viewList({ request, response, bouncer, inertia }: HttpContext) {
+  async viewCreate({ bouncer, inertia }: HttpContext) {
+    if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
+    return inertia.render('dashboard/permission/createEdit')
+  }
+
+  async viewEdit({ bouncer, inertia, params }: HttpContext) {
     if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
 
-    try {
-      const q = mapRequestToQueryParams(request)
-      const data = await this.service.index(q)
+    const id = params.id
+    if (!id) return throwNotFound()
 
-      return inertia.render('dashboard/permission/list', data)
-    } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
-    }
+    const data = await this.permSvc.findOrFail(id)
+    return inertia.render('dashboard/permission/createEdit', { data: new PermissionDto(data) })
+  }
+
+  async viewList({ request, bouncer, inertia }: HttpContext) {
+    if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
+
+    const q = mapRequestToQueryParams(request)
+    const dataQ = await this.permSvc.index(q)
+
+    return inertia.render('dashboard/permission/list', {
+      data: PermissionDto.collect(dataQ.all()),
+      meta: dataQ.getMeta() as PaginationMeta,
+    })
   }
 
   // if POST request -> create
@@ -38,13 +57,13 @@ export default class PermissionController {
       if (request.method() === 'POST') {
         if (await bouncer.with('PermissionPolicy').denies('create', request)) throwForbidden()
 
-        await this.service.create(payload)
+        await this.permSvc.create(payload)
       } else if (request.method() === 'PATCH') {
-        const permission = await this.service.findOrFail(payload.id!)
+        const permission = await this.permSvc.findOrFail(payload.id!)
         if (await bouncer.with('PermissionPolicy').denies('update', permission, request))
           throwForbidden()
 
-        await this.service.create(payload)
+        await this.permSvc.create(payload)
       } else {
         throwForbidden()
       }
@@ -64,10 +83,10 @@ export default class PermissionController {
   async destroy({ response, params, bouncer }: HttpContext) {
     try {
       const id = params.id
-      const permission = await this.service.findOrFail(id)
+      const permission = await this.permSvc.findOrFail(id)
       if (await bouncer.with('PermissionPolicy').denies('delete', permission)) throwForbidden()
 
-      await this.service.deletePermission(id)
+      await this.permSvc.deletePermission(id)
 
       return response.status(200).json({
         status: 'success',

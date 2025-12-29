@@ -4,9 +4,14 @@ import { Exception } from '@adonisjs/core/exceptions'
 import { HttpContext } from '@adonisjs/core/http'
 
 export function mapRequestToQueryParams<T>(request: HttpContext['request']): QueryBuilderParams<T> {
+  // sort direction is marked by if there is a "-" at the beginning of the sortBy
+  let sortBy = request.input('sort', '')
+  const sortDirection = sortBy.startsWith('-') ? 'desc' : 'asc'
+  if (sortBy.startsWith('-')) sortBy = sortBy.replace('-', '')
+
   return {
     page: request.input('page', 1),
-    perPage: request.input('perPage', 10),
+    perPage: request.input('per_page', 10),
 
     // global search (?search=john)
     search: request.input('search', ''),
@@ -14,8 +19,8 @@ export function mapRequestToQueryParams<T>(request: HttpContext['request']): Que
     // column search (?searchBy[username]=john&searchBy[email]=gmail)
     searchBy: request.input('searchBy', {}),
 
-    sortBy: request.input('sortBy'),
-    sortDirection: request.input('sortDirection', 'asc'),
+    sortBy,
+    sortDirection,
   }
 }
 

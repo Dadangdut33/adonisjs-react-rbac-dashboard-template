@@ -1,3 +1,5 @@
+import type { RouteWithName, RouteWithParams } from '@izzyjs/route/routes'
+
 export interface QueryBuilderParams<T extends LucidModel> {
   page?: number
   perPage?: number
@@ -43,4 +45,23 @@ export type FlashAlertType = {
   error?: string
   info?: string
   warning?: string
+}
+
+// Helper for routename type - we copy pasted it from izzyjs
+export type RouteNameType = Exclude<RouteWithName, RouteWithParams>['name']
+
+// Helper for paginated data
+export type PaginationMeta = {
+  current_page: number
+  per_page: number
+  total: number
+
+  first_page: number
+  first_page_url: string
+
+  last_page: number
+  last_page_url: string
+
+  next_page_url: string | null
+  prev_page_url: string | null
 }

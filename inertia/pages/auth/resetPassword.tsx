@@ -11,7 +11,7 @@ import {
   PasswordStrengthDropdown,
   getPasswordStrength,
 } from '~/components/auth/password'
-import { useModals } from '~/components/core/modal-hooks'
+import { useModals } from '~/components/core/modal/modal-hooks'
 import { NotifyError } from '~/components/core/notify'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'

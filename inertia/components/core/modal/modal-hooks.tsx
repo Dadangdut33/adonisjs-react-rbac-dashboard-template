@@ -23,7 +23,9 @@ export function useModals() {
     },
 
     ConfirmAddModal: (config: {
-      data?: string
+      title?: string | React.ReactNode
+      name?: string
+      message?: string | React.ReactNode
       onConfirm?: () => void | Promise<void>
       onCancel?: () => void | Promise<void>
       confirmText?: string
@@ -32,13 +34,13 @@ export function useModals() {
       cancelVariant?: btnVariant
     }) => {
       return confirmModal({
-        title: (
+        title: config.title || (
           <div className="flex items-center gap-2">
             <Check className="size-5 text-green-600" />
-            <span>Save {config.data || 'Data'}</span>
+            <span>Save {config.name || 'Data'}</span>
           </div>
         ),
-        message: `Are you sure you want to save ${config.data || 'this data'}?`,
+        message: config.message || `Are you sure you want to save ${config.name || 'this data'}?`,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Save',
@@ -49,7 +51,9 @@ export function useModals() {
     },
 
     ConfirmCancelModal: (config: {
-      data?: string
+      title?: string | React.ReactNode
+      name?: string
+      message?: string | React.ReactNode
       onConfirm?: () => void | Promise<void>
       onCancel?: () => void | Promise<void>
       confirmText?: string
@@ -58,13 +62,14 @@ export function useModals() {
       cancelVariant?: btnVariant
     }) => {
       return confirmModal({
-        title: (
+        title: config.title || (
           <div className="flex items-center gap-2">
             <X className="size-5 text-yellow-600" />
-            <span>Cancel {config.data || 'Action'}</span>
+            <span>Cancel {config.name || 'Action'}</span>
           </div>
         ),
-        message: `Are you sure you want to cancel ${config.data || 'this action'}?`,
+        message:
+          config.message || `Are you sure you want to cancel ${config.name || 'this action'}?`,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Cancel',
@@ -75,7 +80,9 @@ export function useModals() {
     },
 
     ConfirmResetModal: (config: {
-      data?: string
+      title?: string | React.ReactNode
+      name?: string
+      message?: string | React.ReactNode
       onConfirm?: () => void | Promise<void>
       onCancel?: () => void | Promise<void>
       confirmText?: string
@@ -84,13 +91,13 @@ export function useModals() {
       cancelVariant?: btnVariant
     }) => {
       return confirmModal({
-        title: (
+        title: config.title || (
           <div className="flex items-center gap-2">
             <Plus className="size-5 text-blue-600" />
-            <span>Reset {config.data || 'Data'}</span>
+            <span>Reset {config.name || 'Data'}</span>
           </div>
         ),
-        message: `Are you sure you want to reset ${config.data || 'this data'}?`,
+        message: config.message || `Are you sure you want to reset ${config.name || 'this data'}?`,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Reset',
@@ -101,7 +108,9 @@ export function useModals() {
     },
 
     ConfirmDeleteModal: (config: {
-      data?: string
+      title?: string | React.ReactNode
+      name?: string
+      message?: string | React.ReactNode
       extra?: string
       onConfirm?: () => void | Promise<void>
       onCancel?: () => void | Promise<void>
@@ -111,13 +120,15 @@ export function useModals() {
       cancelVariant?: btnVariant
     }) => {
       return confirmModal({
-        title: (
+        title: config.title || (
           <div className="flex items-center gap-2">
             <Trash2 className="size-5 text-red-400" />
-            <span>Delete {config.data || 'Data'}</span>
+            <span>Delete {config.name || 'Data'}</span>
           </div>
         ),
-        message: `Are you sure you want to delete 🗑️ ${config.data || 'this data'}?${config.extra || ''}`,
+        message:
+          config.message ||
+          `Are you sure you want to delete 🗑️ ${config.name || 'this data'}?${config.extra || ''}`,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Delete',

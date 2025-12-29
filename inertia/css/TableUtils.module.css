@@ -1,0 +1,60 @@
+.card {
+  /* add animation */
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  /* on hover scale size */
+  transform: scale(1.05);
+}
+
+.appearAnimation {
+  animation: appear 0.2s ease-in-out;
+}
+
+@keyframes appear {
+  0% {
+    display: block;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.disappearAnimation {
+  animation: disappear 0.2s ease-in-out forwards;
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+    display: none;
+  }
+}
+
+.searchInput {
+  width: 80%;
+
+  @media (max-width: $tablet) {
+    width: 70%;
+  }
+
+  @media (max-width: $mobile) {
+    width: 60%;
+  }
+
+  @media (max-width: $mobile-l) {
+    width: 100%;
+  }
+}

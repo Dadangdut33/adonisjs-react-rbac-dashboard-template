@@ -48,27 +48,36 @@ export default abstract class BaseRepository<T extends LucidModel> {
      * Global search
      */
     if (search) {
-      const searchableColumns = Array.from((this.model as any).$columns.values()).map(
-        (col: any) => col.columnName
-      )
+      //  Get all column definitions
+      const allColumns = Array.from(this.model.$columnsDefinitions.values())
 
+      // Filter columns based on 'searchableCol' whitelist if it exists
+      let targetColumns = allColumns
       if (searchableCol && searchableCol.length > 0) {
-        // use only the searchable columns if defined
-        const setSearchable = new Set<string>()
-        searchableColumns.filter((col) => setSearchable.has(col))
+        targetColumns = allColumns.filter((col) => searchableCol.includes(col.columnName))
       }
 
       query.where((builder) => {
-        for (const column of searchableColumns) {
-          builder.orWhere(column, 'ILIKE', `%${search}%`)
+        for (const col of targetColumns) {
+          // Check metadata type (Adonis/Lucid specific)
+          // Most strings are 'string', numbers/dates/booleans are not.
+          const isString = col.meta?.type === 'string'
+
+          if (isString) {
+            builder.orWhere(col.columnName, 'ILIKE', `%${search}%`)
+          } else {
+            builder.orWhereRaw(`??::text ILIKE ?`, [col.columnName, `%${search}%`])
+          }
         }
 
-        // This is if a relation column search for global search is defined
+        // Relation global search
         for (const { relation, columns } of searchRelations) {
-          builder.orWhereHas(relation, (relationQuery) => {
+          builder.orWhereHas(relation as any, (relationQuery) => {
             relationQuery.where((subBuilder: any) => {
               for (const column of columns) {
-                subBuilder.orWhere(column, 'ILIKE', `%${search}%`)
+                // We use orWhereRaw here because we don't easily have the
+                // metadata for related models in this loop
+                subBuilder.orWhereRaw(`??::text ILIKE ?`, [column, `%${search}%`])
               }
             })
           })
@@ -78,7 +87,6 @@ export default abstract class BaseRepository<T extends LucidModel> {
 
     /**
      * Column-based search
-     * ?searchBy[username]=john&searchBy[email]=gmail
      */
     if (Object.keys(searchBy).length > 0) {
       query.where((builder) => {
@@ -93,23 +101,26 @@ export default abstract class BaseRepository<T extends LucidModel> {
 
           if (relation && colRelation) {
             // first check if searchable columns are defined | if not whitelisted, skip / prevent from being searchable
-            if (searchableCol && searchableCol.length > 0 && !searchableCol.includes(colRelation))
-              continue
+            if (searchableCol?.length && !searchableCol.includes(colRelation)) continue
 
-            // Example: ?searchBy[profile.full_name]=john smith
             builder.orWhereHas(
               relation as ExtractModelRelations<InstanceType<T>>,
               (relationQuery) => {
-                relationQuery.where(colRelation, 'ILIKE', `%${value}%`)
+                // Cast to text to be safe since we don't know the related column type here
+                relationQuery.whereRaw(`??::text ILIKE ?`, [colRelation, `%${value}%`])
               }
             )
           } else {
             // first check if searchable columns are defined | if not whitelisted, skip / prevent from being searchable
-            if (searchableCol && searchableCol.length > 0 && !searchableCol.includes(column))
-              continue
+            if (searchableCol?.length && !searchableCol.includes(column)) continue
 
-            // Example: ?searchBy[email]=johnsmith@whatever.local
-            builder.orWhere(column, 'ILIKE', `%${value}%`)
+            // Check if local column is a string for better performance
+            const colDef = this.model.$columnsDefinitions.get(column)
+            if (colDef?.meta?.type === 'string') {
+              builder.orWhere(column, 'ILIKE', `%${value}%`)
+            } else {
+              builder.orWhereRaw(`??::text ILIKE ?`, [column, `%${value}%`])
+            }
           }
         }
       })
@@ -132,7 +143,7 @@ export default abstract class BaseRepository<T extends LucidModel> {
   }
 
   public paginate(query: ModelQueryBuilderContract<T>, params: QueryBuilderParams<T>) {
-    const { page = 1, perPage = 10 } = params
+    const { page = 1, perPage = 15 } = params
 
     return query.paginate(page, perPage)
   }

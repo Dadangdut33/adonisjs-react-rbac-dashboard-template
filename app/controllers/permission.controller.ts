@@ -20,7 +20,7 @@ export default class PermissionController {
       const q = mapRequestToQueryParams(request)
       const data = await this.service.index(q)
 
-      return inertia.render('dashboard/user', data)
+      return inertia.render('dashboard/permission/list', data)
     } catch (error) {
       return response.status(error.status || 500).json({
         status: 'error',

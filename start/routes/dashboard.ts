@@ -3,7 +3,8 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from '../kernel.js'
 
 const DashboardController = () => import('#controllers/dashboard.controller')
-const UsersController = () => import('#controllers/users.controller')
+const UserController = () => import('#controllers/user.controller')
+const PermissionController = () => import('#controllers/permission.controller')
 const ProfileController = () => import('#controllers/profile.controller')
 
 router
@@ -19,12 +20,21 @@ router
 
     router
       .group(() => {
-        router.get('/', [UsersController, 'viewList']).as('users.view')
-        router.post('/', [UsersController, 'storeOrUpdate']).as('users.store')
-        router.patch('/', [UsersController, 'storeOrUpdate']).as('users.update')
-        router.delete('/:id', [UsersController, 'destroy']).as('users.destroy')
+        router.get('/', [UserController, 'viewList']).as('user.view')
+        router.post('/', [UserController, 'storeOrUpdate']).as('user.store')
+        router.patch('/', [UserController, 'storeOrUpdate']).as('user.update')
+        router.delete('/:id', [UserController, 'destroy']).as('user.destroy')
       })
       .prefix('/users')
+
+    router
+      .group(() => {
+        router.get('/', [PermissionController, 'viewList']).as('permissions.view')
+        router.post('/', [PermissionController, 'storeOrUpdate']).as('permissions.store')
+        router.patch('/', [PermissionController, 'storeOrUpdate']).as('permissions.update')
+        router.delete('/:id', [PermissionController, 'destroy']).as('permissions.destroy')
+      })
+      .prefix('/permissions')
   })
   .use([middleware.auth(), middleware.verify_email()])
   .prefix('/dashboard')

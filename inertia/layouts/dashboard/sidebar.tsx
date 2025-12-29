@@ -221,7 +221,7 @@ const data = {
     },
     {
       title: 'Permissions',
-      url: '#',
+      url: route('permissions.view').path,
       icon: ShieldUser,
       flat: true,
       requiredPermission: 'permission.view',

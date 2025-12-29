@@ -25,11 +25,14 @@ export default class extends BaseSchema {
     this.defer(async (query) => {
       const permissions = await query.table(Tables.PERMISSIONS)
       const superAdminId = Roles.SUPER_ADMIN
+      const now = new Date()
 
       // Data
       const data = permissions.map((permission) => ({
         role_id: superAdminId,
         permission_id: permission.id,
+        created_at: now,
+        updated_at: now,
       }))
 
       await query.table(this.tableName).multiInsert(data)

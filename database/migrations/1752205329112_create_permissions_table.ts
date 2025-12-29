@@ -20,8 +20,14 @@ export default class extends BaseSchema {
     this.defer(async (query) => {
       const prefixes = ['user', 'role', 'permission']
       const permissionType = ['view', 'create', 'update', 'delete']
+      const now = new Date()
       const permissions = prefixes.flatMap((prefix) =>
-        permissionType.map((type) => ({ name: `${prefix}.${type}`, is_protected: true }))
+        permissionType.map((type) => ({
+          name: `${prefix}.${type}`,
+          is_protected: true,
+          created_at: now,
+          updated_at: now,
+        }))
       )
 
       await query.table(this.tableName).multiInsert(permissions)

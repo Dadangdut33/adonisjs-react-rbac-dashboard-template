@@ -230,7 +230,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, state } = useSidebar()
   const { props: sharedProps } = usePage<SharedProps>()
   const { ConfirmLogoutModal } = useModals()
   const { mutate: logout, isPending } = useLogout()
@@ -330,7 +330,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar> & 
                 >
                   {avatarComp}
                   {userComp}
-                  <ChevronsUpDown className="ml-auto size-4" />
+                  {state === 'expanded' && <ChevronsUpDown className="ml-auto size-4" />}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent

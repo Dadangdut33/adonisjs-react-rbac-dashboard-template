@@ -1,6 +1,6 @@
 import { getMethodActName, mapRequestToQueryParams, throwForbidden } from '#lib/utils'
 import UserService from '#services/user.service'
-import { createEditUserValidator } from '#validators/users'
+import { createEditUserValidator } from '#validators/user'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
@@ -16,7 +16,7 @@ export default class UsersController {
       const q = mapRequestToQueryParams(request)
       const data = await this.service.index(q)
 
-      return inertia.render('dashboard/users', data)
+      return inertia.render('dashboard/user', data)
     } catch (error) {
       return response.status(error.status || 500).json({
         status: 'error',

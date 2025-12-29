@@ -2,7 +2,7 @@ import { loginValidator, registerValidator, resetPasswordValidator } from '#vali
 import { createEditPermissionValidator } from '#validators/auth/permission'
 import { createEditRoleValidator } from '#validators/auth/role'
 import { createProfileValidator, updateProfileValidator } from '#validators/profile'
-import { createEditUserValidator } from '#validators/users'
+import { createEditUserValidator } from '#validators/user'
 
 import { Infer } from '@vinejs/vine/types'
 

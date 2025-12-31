@@ -59,8 +59,7 @@ export default abstract class BaseRepository<T extends LucidModel> {
 
       query.where((builder) => {
         for (const col of targetColumns) {
-          // Check metadata type (Adonis/Lucid specific)
-          // Most strings are 'string', numbers/dates/booleans are not.
+          // Check metadata type
           const isString = col.meta?.type === 'string'
 
           if (isString) {
@@ -89,10 +88,10 @@ export default abstract class BaseRepository<T extends LucidModel> {
      * Column-based search
      */
     if (Object.keys(searchBy).length > 0) {
+      // We use .where() here to wrap all column filters in a single AND (...) group
       query.where((builder) => {
         for (const [column, value] of Object.entries(searchBy)) {
-          // no value, skip
-          if (!value) continue
+          if (value === undefined || value === null || value === '') continue
 
           // first check if the column is in these format:
           // - column
@@ -100,26 +99,32 @@ export default abstract class BaseRepository<T extends LucidModel> {
           const { relation, column: colRelation } = parseRelationColumn(column) || {}
 
           if (relation && colRelation) {
-            // first check if searchable columns are defined | if not whitelisted, skip / prevent from being searchable
+            // make sure its searchable if searchableCol is defined
             if (searchableCol?.length && !searchableCol.includes(colRelation)) continue
 
-            builder.orWhereHas(
+            // .whereHas is 'AND' logic
+            builder.whereHas(
               relation as ExtractModelRelations<InstanceType<T>>,
               (relationQuery) => {
-                // Cast to text to be safe since we don't know the related column type here
                 relationQuery.whereRaw(`??::text ILIKE ?`, [colRelation, `%${value}%`])
               }
             )
           } else {
-            // first check if searchable columns are defined | if not whitelisted, skip / prevent from being searchable
+            // make sure its searchable if searchableCol is defined
             if (searchableCol?.length && !searchableCol.includes(column)) continue
 
-            // Check if local column is a string for better performance
             const colDef = this.model.$columnsDefinitions.get(column)
-            if (colDef?.meta?.type === 'string') {
-              builder.orWhere(column, 'ILIKE', `%${value}%`)
+
+            // Handle Booleans specifically
+            if (colDef?.meta?.type === 'boolean' || value === 'true' || value === 'false') {
+              const boolValue = String(value).toLowerCase() === 'true'
+              builder.where(column, boolValue)
+            } else if (colDef?.meta?.type === 'string') {
+              // Handle Strings
+              builder.where(column, 'ILIKE', `%${value}%`)
             } else {
-              builder.orWhereRaw(`??::text ILIKE ?`, [column, `%${value}%`])
+              // Fallback for other types (number, date, etc)
+              builder.whereRaw(`??::text ILIKE ?`, [column, `%${value}%`])
             }
           }
         }

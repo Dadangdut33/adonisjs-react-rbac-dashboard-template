@@ -14,14 +14,29 @@ import {
   Paper,
   Text,
   TextInput,
-  Tooltip,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconDotsVertical, IconEdit, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react'
+import {
+  IconCheck,
+  IconDotsVertical,
+  IconEdit,
+  IconPlus,
+  IconSearch,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { Trash2 } from 'lucide-react'
-import { DataTable, DataTableProps, DataTableSortStatus } from 'mantine-datatable'
+import { ListRestart, Trash2 } from 'lucide-react'
+import {
+  DataTable,
+  DataTableProps,
+  DataTableSortStatus,
+  useDataTableColumns,
+} from 'mantine-datatable'
 import { useState } from 'react'
+import { FilterDate } from '~/components/core/table-filter/date-filter'
+import { FilterRadio } from '~/components/core/table-filter/radio-filter'
+import { FilterText } from '~/components/core/table-filter/text-filter'
 import { Button } from '~/components/ui/button'
 import classes from '~/css/TableUtils.module.css'
 import { useDeleteGeneric } from '~/hooks/use_generic_delete'
@@ -84,42 +99,96 @@ export default function page(
   })
 
   // Columns
+  const key = 'permission-table'
   const columns: DataTableProps<DataType>['columns'] = [
     {
       accessor: 'name',
       title: 'Name',
       sortable: true,
+      filter: () => {
+        return (
+          <FilterText
+            column={'name'}
+            searchFilter={searchFilter}
+            label="Permission Name"
+            description="Filter by permission name"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.name ? true : false,
     },
     {
       accessor: 'is_protected',
       title: 'Is Protected',
+      toggleable: true,
       sortable: true,
-      width: 150,
-      render: (data) => <Text fz="sm">{data.is_protected ? 'Yes' : 'No'}</Text>,
+      width: 200,
+      render: (data) => <Text fz="sm">{data.is_protected ? <IconCheck /> : <IconX />}</Text>,
+      filter: () => {
+        return (
+          <FilterRadio
+            column={'is_protected'}
+            searchFilter={searchFilter}
+            label="Is Protected"
+            description="Only show protected permissions"
+            data={[
+              { value: 'true', label: 'Yes' },
+              { value: 'false', label: 'No' },
+            ]}
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.is_protected ? true : false,
     },
     {
       accessor: 'created_at',
+      toggleable: true,
       sortable: true,
-      width: 125,
+      width: 200,
       render: ({ created_at }) => (
-        <Tooltip label={dayjs(created_at).format('YYYY-MM-DD HH:mm:ss')}>
+        <MantineTooltip label={dayjs(created_at).format('YYYY-MM-DD HH:mm:ss')}>
           <Text fz="sm">{dayjs(created_at).format('YYYY-MM-DD')}</Text>
-        </Tooltip>
+        </MantineTooltip>
       ),
+      filter: () => {
+        return (
+          <FilterDate
+            column={'created_at'}
+            searchFilter={searchFilter}
+            label="Created At"
+            description="Filter by created at"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.created_at ? true : false,
     },
     {
       accessor: 'updated_at',
+      title: 'Updated At',
+      toggleable: true,
       sortable: true,
-      width: 125,
+      width: 200,
       render: ({ updated_at }) => (
-        <Tooltip label={dayjs(updated_at).format('YYYY-MM-DD HH:mm:ss')}>
+        <MantineTooltip label={dayjs(updated_at).format('YYYY-MM-DD HH:mm:ss')}>
           <Text fz="sm">{dayjs(updated_at).format('YYYY-MM-DD')}</Text>
-        </Tooltip>
+        </MantineTooltip>
       ),
+      filter: () => {
+        return (
+          <FilterDate
+            column={'updated_at'}
+            searchFilter={searchFilter}
+            label="Updated At"
+            description="Filter by updated at"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.updated_at ? true : false,
     },
     {
       accessor: 'id',
       title: 'Actions',
+      toggleable: false,
       sortable: false,
       width: 75,
       render: (data) => {
@@ -144,7 +213,7 @@ export default function page(
           <Menu withArrow width={150} shadow="md">
             <Menu.Target>
               <div className="flex">
-                <ActionIcon className="mx-auto">
+                <ActionIcon className="mx-auto" variant="light">
                   <IconDotsVertical size={16} />
                 </ActionIcon>
               </div>
@@ -163,9 +232,9 @@ export default function page(
               </Menu.Item>
               {/* Delete is disabled if protected */}
               {data.is_protected ? (
-                <Tooltip label="Protected item cannot be deleted" withArrow>
+                <MantineTooltip label="Protected item cannot be deleted" withArrow>
                   {deleteMenuItem}
-                </Tooltip>
+                </MantineTooltip>
               ) : (
                 deleteMenuItem
               )}
@@ -175,8 +244,11 @@ export default function page(
       },
     },
   ]
-
-  // TODO for the table part: search per column
+  const { effectiveColumns, resetColumnsToggle } = useDataTableColumns({
+    columns,
+    key,
+  })
+  const thereIsHiddenColumn = effectiveColumns.some((col) => col.hidden)
 
   return (
     <DashboardLayout breadcrumbs={breadcrumbs}>
@@ -196,7 +268,7 @@ export default function page(
             <Group ms={'auto'} gap={'xs'} justify="flex-end">
               <Group gap={'xs'} justify="flex-end">
                 <TextInput
-                  placeholder="Search..."
+                  placeholder="Cari..."
                   leftSection={
                     searchFilter.isFetching ? <Loader size={16} /> : <IconSearch size={16} />
                   }
@@ -210,7 +282,7 @@ export default function page(
                   })}
                 />
 
-                <MantineTooltip label="Search" withArrow>
+                <MantineTooltip label="Cari" withArrow>
                   <ActionIcon
                     variant="outline"
                     size={'lg'}
@@ -221,15 +293,72 @@ export default function page(
                   </ActionIcon>
                 </MantineTooltip>
               </Group>
+
+              <MantineTooltip label="Reset columns toggle state" withArrow>
+                <ActionIcon
+                  variant="outline"
+                  color="gray"
+                  size={'lg'}
+                  onClick={resetColumnsToggle}
+                  disabled={!thereIsHiddenColumn}
+                >
+                  <ListRestart />
+                </ActionIcon>
+              </MantineTooltip>
             </Group>
           </Group>
+          {/* <Group justify="space-between" mb="md">
+            <Group gap={'xs'} justify="flex-end" ms={'auto'}>
+              <TextInput
+                placeholder="Search..."
+                leftSection={
+                  searchFilter.isFetching ? <Loader size={16} /> : <IconSearch size={16} />
+                }
+                value={searchFilter.search}
+                onChange={(e) => {
+                  searchFilter.onSearch(e.currentTarget.value)
+                }}
+                className={cn(classes.searchInput, {
+                  [classes.appearAnimation]: searching,
+                  [classes.disappearAnimation]: !searching,
+                })}
+              />
+
+              <MantineTooltip label="Search" withArrow>
+                <ActionIcon
+                  variant="outline"
+                  size={'lg'}
+                  onClick={handleSearchingButton}
+                  loading={searchFilter.isFetching}
+                >
+                  <IconSearch />
+                </ActionIcon>
+              </MantineTooltip>
+
+              <Tooltip label="Reset columns toggle state" withArrow>
+                <ActionIcon
+                  variant="outline"
+                  color="gray"
+                  size={'lg'}
+                  onClick={resetColumnsToggle}
+                  disabled={!thereIsHiddenColumn}
+                >
+                  <ListRestart />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </Group> */}
 
           <DataTable
             minHeight={200}
             verticalSpacing="xs"
+            horizontalSpacing={'xs'}
             striped
             highlightOnHover
-            columns={columns}
+            withColumnBorders
+            verticalAlign="top"
+            storeColumnsKey={key}
+            columns={effectiveColumns}
             records={data}
             selectedRecords={selectedRecords}
             fetching={searchFilter.isFetching}

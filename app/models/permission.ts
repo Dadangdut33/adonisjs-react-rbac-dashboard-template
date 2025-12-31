@@ -16,7 +16,7 @@ export default class Permission extends BaseModel {
   declare name: string
 
   // * A special role that should always be there. it is protected from deletion and modification
-  // ! must only be inserted from seeder.
+  // ! flagged from db directly.
   @column()
   declare is_protected: boolean
 

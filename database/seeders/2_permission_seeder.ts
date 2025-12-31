@@ -7,10 +7,10 @@ export default class extends BaseSeeder {
     const prefixes = ['user', 'role', 'permission']
     const permissionType = ['view', 'create', 'update', 'delete']
     const manual = ['dashboard.view', 'profile.view', 'profile.update']
-    const manualMapped = manual.map((manualName) => ({ name: manualName }))
+    const manualMapped = manual.map((manualName) => ({ name: manualName, is_protected: true }))
 
     const permissions = prefixes.flatMap((prefix) =>
-      permissionType.map((type) => ({ name: `${prefix}.${type}` }))
+      permissionType.map((type) => ({ name: `${prefix}.${type}`, is_protected: true }))
     )
 
     permissions.push(...manualMapped)

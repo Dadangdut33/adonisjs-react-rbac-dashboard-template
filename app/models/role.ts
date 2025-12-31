@@ -19,8 +19,8 @@ export default class Role extends BaseModel {
   @column()
   declare name: string
 
-  // * A special role that should always be there. it is protected from deletion
-  // ! must only be inserted from seeder.
+  // * A special role that should always be there. it is protected from deletion and modification
+  // ! flagged from db directly.
   @column()
   declare is_protected: boolean
 

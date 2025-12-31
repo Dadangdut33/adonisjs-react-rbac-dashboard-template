@@ -7,6 +7,7 @@ import { Head } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import { FileButton, Textarea } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useModals } from '~/components/core/modal/modal-hooks'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
@@ -19,7 +20,7 @@ import { checkForm } from '~/lib/utils'
 
 export default function Profile(props: SharedProps & InferPageProps<ProfileController, 'view'>) {
   const { user, profile, roles = [] } = props
-  // const [file, setFile] = useState<File | null>(null);
+  const { ConfirmAddModal } = useModals()
   const avatar = useAvatar()
 
   const form = useForm({
@@ -40,9 +41,13 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
 
   const handleSubmit = () => {
     if (!checkForm(form)) return
-
     mutation.mutate(form.values)
   }
+
+  const onSave = () =>
+    ConfirmAddModal({
+      onConfirm: handleSubmit,
+    })
 
   return (
     <DashboardLayout
@@ -153,7 +158,7 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
             </CardContent>
           </Card>
           <div className="flex justify-end">
-            <Button onClick={handleSubmit} disabled={mutation.isPending}>
+            <Button onClick={onSave} disabled={mutation.isPending}>
               {mutation.isPending ? 'Updating...' : 'Update Profile'}
             </Button>
           </div>

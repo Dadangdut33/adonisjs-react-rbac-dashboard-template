@@ -4,6 +4,7 @@ export const emailValidator = vine.string().email().normalizeEmail()
 
 export const emailValidatorUnique = vine
   .string()
+  .trim()
   .email()
   .normalizeEmail()
   .unique(async (query, value) => {

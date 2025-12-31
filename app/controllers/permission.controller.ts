@@ -11,6 +11,7 @@ import { createEditPermissionValidator } from '#validators/auth/permission'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import { route } from '@izzyjs/route/client'
 
 import { PermissionDto } from '../dtos/permission_dto.js'
 
@@ -23,7 +24,7 @@ export default class PermissionController {
 
   async viewCreate({ bouncer, inertia }: HttpContext) {
     if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
-    return inertia.render('dashboard/permission/createEdit')
+    return inertia.render('dashboard/permission/createEdit', { data: null })
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
@@ -33,7 +34,9 @@ export default class PermissionController {
     if (!id) return throwNotFound()
 
     const data = await this.permSvc.findOrFail(id)
-    return inertia.render('dashboard/permission/createEdit', { data: new PermissionDto(data) })
+    return inertia.render('dashboard/permission/createEdit', {
+      data: new PermissionDto(data),
+    })
   }
 
   async viewList({ request, bouncer, inertia }: HttpContext) {
@@ -63,7 +66,7 @@ export default class PermissionController {
         if (await bouncer.with('PermissionPolicy').denies('update', permission, request))
           throwForbidden()
 
-        await this.permSvc.create(payload)
+        await this.permSvc.update(permission, payload)
       } else {
         throwForbidden()
       }
@@ -71,6 +74,7 @@ export default class PermissionController {
       return response.status(200).json({
         status: 'success',
         message: `Successfully ${getMethodActName(request)} permission.`,
+        redirect_to: route('permission.index').path,
       })
     } catch (error) {
       return response.status(error.status || 500).json({

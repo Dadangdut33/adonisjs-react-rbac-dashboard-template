@@ -1,4 +1,4 @@
-import { Check, Plus, Trash2, UserX, X } from 'lucide-react'
+import { Check, RefreshCcwIcon, Trash2, UserX, X } from 'lucide-react'
 import { btnVariant } from '~/components/ui/button'
 
 import { useConfirmModal } from './modal-context'
@@ -45,8 +45,8 @@ export function useModals() {
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Save',
         cancelText: config.cancelText || 'Cancel',
-        confirmVariant: config.confirmVariant,
-        cancelVariant: config.cancelVariant,
+        confirmVariant: 'green',
+        cancelVariant: 'destructive',
       })
     },
 
@@ -93,7 +93,7 @@ export function useModals() {
       return confirmModal({
         title: config.title || (
           <div className="flex items-center gap-2">
-            <Plus className="size-5 text-blue-600" />
+            <RefreshCcwIcon className="size-5 text-blue-600" />
             <span>Reset {config.name || 'Data'}</span>
           </div>
         ),
@@ -102,7 +102,7 @@ export function useModals() {
         onCancel: config.onCancel,
         confirmText: config.confirmText || 'Reset',
         cancelText: config.cancelText || 'Cancel',
-        confirmVariant: config.confirmVariant,
+        confirmVariant: 'destructive',
         cancelVariant: config.cancelVariant,
       })
     },

@@ -6,4 +6,11 @@ export default class PermissionRepository extends BaseRepository<typeof Permissi
   constructor() {
     super(Permission)
   }
+
+  async updatePermission(permission: InstanceType<typeof Permission>, data: any) {
+    // first make sure that the permission is not protected
+    if (permission.is_protected) throw new Error('Permission is protected')
+
+    return this.updateGeneric(permission, data)
+  }
 }

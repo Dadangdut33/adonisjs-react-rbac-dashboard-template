@@ -19,7 +19,7 @@ export default class PermissionService {
   }
 
   async update(permission: Permission, data: PermissionPayload) {
-    return this.repo.updateGeneric(permission, data)
+    return this.repo.updatePermission(permission, data)
   }
 
   async findOrFail(value: any) {

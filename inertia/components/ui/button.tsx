@@ -9,6 +9,7 @@ export type btnVariant =
   | 'outline'
   | 'secondary'
   | 'ghost'
+  | 'green'
   | 'link'
   | 'disabled'
 const buttonVariants = cva(
@@ -23,6 +24,8 @@ const buttonVariants = cva(
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+        green:
+          'bg-green-500 text-green-foreground hover:bg-green-600 dark:hover:bg-green-400 text-black',
         link: 'text-primary underline-offset-4 hover:underline',
         disabled: 'bg-gray-200 text-gray-400 cursor-not-allowed',
       },

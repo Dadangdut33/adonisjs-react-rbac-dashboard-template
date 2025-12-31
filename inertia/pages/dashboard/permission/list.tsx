@@ -7,6 +7,8 @@ import { Head, Link } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {
   ActionIcon,
+  Alert,
+  Button,
   Group,
   Loader,
   Tooltip as MantineTooltip,
@@ -17,6 +19,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
+  IconAlertCircle,
   IconCheck,
   IconDotsVertical,
   IconEdit,
@@ -37,7 +40,6 @@ import { useState } from 'react'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterRadio } from '~/components/core/table-filter/radio-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
-import { Button } from '~/components/ui/button'
 import classes from '~/css/TableUtils.module.css'
 import { useDeleteGeneric } from '~/hooks/use_generic_delete'
 import useSearchFilter from '~/hooks/use_search_filter'
@@ -85,6 +87,7 @@ export default function page(
     onSuccess: () => {
       setSelected(undefined)
       onClose()
+      searchFilter.doSearch()
     },
     deleteParam: { params: { id: selected?.id } },
     routeName: `${baseRoute}.destroy` as RouteNameType,
@@ -192,22 +195,36 @@ export default function page(
       sortable: false,
       width: 75,
       render: (data) => {
-        const deleteMenuItem = (
-          <Menu.Item
-            fw={600}
-            fz="sm"
-            color="red"
-            variant="filled"
-            leftSection={<IconTrash size={16} />}
-            onClick={() => {
-              if (data.is_protected) return
-              setSelected(() => data)
-              onOpen()
-            }}
-            disabled={data.is_protected}
-          >
-            Delete
-          </Menu.Item>
+        const menuItem = (
+          <>
+            <Menu.Item
+              fw={600}
+              fz="sm"
+              color="blue"
+              variant="filled"
+              component={Link}
+              leftSection={<IconEdit size={16} />}
+              href={route(`${baseRoute}.edit`, { params: { id: data.id } }).path}
+            >
+              Edit
+            </Menu.Item>
+
+            <Menu.Item
+              fw={600}
+              fz="sm"
+              color="red"
+              variant="filled"
+              leftSection={<IconTrash size={16} />}
+              onClick={() => {
+                if (data.is_protected) return
+                setSelected(() => data)
+                onOpen()
+              }}
+              disabled={data.is_protected}
+            >
+              Delete
+            </Menu.Item>
+          </>
         )
         return (
           <Menu withArrow width={150} shadow="md">
@@ -219,24 +236,13 @@ export default function page(
               </div>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item
-                fw={600}
-                fz="sm"
-                color="blue"
-                variant="filled"
-                component={Link}
-                leftSection={<IconEdit size={16} />}
-                href={route(`${baseRoute}.edit`, { params: { id: data.id } }).path}
-              >
-                Edit
-              </Menu.Item>
               {/* Delete is disabled if protected */}
               {data.is_protected ? (
-                <MantineTooltip label="Protected item cannot be deleted" withArrow>
-                  {deleteMenuItem}
+                <MantineTooltip label="*Protected item cannot be modified" withArrow>
+                  {menuItem}
                 </MantineTooltip>
               ) : (
-                deleteMenuItem
+                menuItem
               )}
             </Menu.Dropdown>
           </Menu>
@@ -254,14 +260,31 @@ export default function page(
     <DashboardLayout breadcrumbs={breadcrumbs}>
       <Head title="Permission" />
       <div className="space-y-4">
-        <div>
-          <Link href={route(`${baseRoute}.create`).path}>
-            <Button>
-              <IconPlus size={18} />
-              Add
-            </Button>
-          </Link>
-        </div>
+        <Group>
+          <Button
+            leftSection={<IconPlus size={18} />}
+            href={route(`${baseRoute}.create`).path}
+            component={Link}
+          >
+            Add
+          </Button>
+        </Group>
+
+        <Alert
+          title="About Protected Permissions"
+          color="red"
+          radius="md"
+          mt="md"
+          icon={<IconAlertCircle />}
+        >
+          Permission is tied to each action in the server. Because of that, it is designed so that
+          if you want to to set / unset permission as protected, you must edit it manually in the
+          DB.
+          <br />
+          This is done so that critical part of the application does not get messed up by mistake.
+          To change what is a role allowed to do, you may go to the role page and edit its
+          coresponding permissions.
+        </Alert>
 
         <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>
           <Group justify="space-between" mb="md">
@@ -307,47 +330,6 @@ export default function page(
               </MantineTooltip>
             </Group>
           </Group>
-          {/* <Group justify="space-between" mb="md">
-            <Group gap={'xs'} justify="flex-end" ms={'auto'}>
-              <TextInput
-                placeholder="Search..."
-                leftSection={
-                  searchFilter.isFetching ? <Loader size={16} /> : <IconSearch size={16} />
-                }
-                value={searchFilter.search}
-                onChange={(e) => {
-                  searchFilter.onSearch(e.currentTarget.value)
-                }}
-                className={cn(classes.searchInput, {
-                  [classes.appearAnimation]: searching,
-                  [classes.disappearAnimation]: !searching,
-                })}
-              />
-
-              <MantineTooltip label="Search" withArrow>
-                <ActionIcon
-                  variant="outline"
-                  size={'lg'}
-                  onClick={handleSearchingButton}
-                  loading={searchFilter.isFetching}
-                >
-                  <IconSearch />
-                </ActionIcon>
-              </MantineTooltip>
-
-              <Tooltip label="Reset columns toggle state" withArrow>
-                <ActionIcon
-                  variant="outline"
-                  color="gray"
-                  size={'lg'}
-                  onClick={resetColumnsToggle}
-                  disabled={!thereIsHiddenColumn}
-                >
-                  <ListRestart />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          </Group> */}
 
           <DataTable
             minHeight={200}

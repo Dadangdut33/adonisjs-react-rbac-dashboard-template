@@ -1,8 +1,6 @@
 'use client'
-
-import { Box, Title } from '@mantine/core'
-import { motion, useAnimate } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { Box, Loader, Title } from '@mantine/core'
+import { useRef } from 'react'
 
 export default function TextLoad({
   center_xy = true,
@@ -11,38 +9,19 @@ export default function TextLoad({
   center_xy?: boolean
   children?: React.ReactNode
 }) {
-  const [scope, animate] = useAnimate()
-
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    const containerWidth = containerRef.current?.offsetWidth
-    const animateLoader = async () => {
-      await animate(
-        [
-          [scope.current, { x: 0, width: '100%' }],
-          [scope.current, { x: containerWidth, width: '0%' }, { delay: 0.6 }],
-        ],
-        {
-          duration: 2,
-          repeat: Infinity,
-          repeatDelay: 0.8,
-        }
-      )
-    }
-    animateLoader()
-  }, [])
-
   return (
-    <Box className={center_xy ? 'flex items-center justify-center h-full' : ''}>
-      <div className="relative" ref={containerRef}>
-        <motion.div ref={scope} className="absolute h-full bg-black dark:bg-white " />
+    <Box className={center_xy ? 'fixed inset-0 flex items-center justify-center' : ''}>
+      <div className="relative inline-block" ref={containerRef}>
+        <div className="absolute top-0 left-0 h-full bg-black dark:bg-white animate-suspense-loader" />
         <Title
           order={2}
-          className="m-4 whitespace-nowrap mix-blend-difference text-sky-700 dark:text-white"
+          className="relative m-4 whitespace-nowrap mix-blend-difference text-sky-700 dark:text-white"
         >
           {children ?? (
-            <div className="flex items-center justify-center h-screen">
+            <div className="flex items-center">
+              <Loader size={18} me={'md'} />
               <i>Please Wait...</i>
             </div>
           )}

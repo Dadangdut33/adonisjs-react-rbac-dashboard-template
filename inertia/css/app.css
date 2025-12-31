@@ -270,8 +270,8 @@
 
 @layer components {
   .text-link {
-    @apply text-blue-600 underline underline-offset-4 hover:text-blue-800
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    color: var(--mantine-color-blue-6);
+    text-decoration: underline;
   }
 }
 
@@ -280,6 +280,31 @@
 /* ------------------------------------------- */
 /* custom */
 /* ------------------------------------------- */
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+
+/* center vertical-horizontal */
+.centered-wrapper {
+  display: flex;
+  justify-content: center; /* Horizontal centering */
+  align-items: center; /* Vertical centering */
+}
+
+.centered-xy {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 
 .hr-error {
   width: 100%; /* Initial width */
@@ -320,6 +345,29 @@
   100% {
     width: 0;
   }
+}
+
+/* for suspense loader */
+@keyframes suspenseLoader {
+  0% {
+    left: 0;
+    width: 0%;
+  }
+  40% {
+    left: 0;
+    width: 100%;
+  }
+  60% {
+    left: 0;
+    width: 100%;
+  }
+  100% {
+    left: 100%;
+    width: 0%;
+  }
+}
+.animate-suspense-loader {
+  animation: suspenseLoader 2s ease-in-out infinite;
 }
 
 /* ------------------------------------------- */

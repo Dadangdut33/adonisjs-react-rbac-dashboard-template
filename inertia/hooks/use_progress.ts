@@ -1,6 +1,5 @@
 import { GlobalEvent } from '@inertiajs/core'
 import { router } from '@inertiajs/react'
-import { nprogress } from '@mantine/nprogress'
 import { isEmpty } from 'lodash-es'
 import { useEffect, useState } from 'react'
 
@@ -23,7 +22,6 @@ const useProgressWhenRendering = () => {
     router.on('start', (event) => {
       if (verifyOnlyVisit(event)) {
         if (event.detail.visit.url.href !== currentUrl) {
-          nprogress.start()
           setCurrentUrl(event.detail.visit.url.href)
           setIsRendering(true)
         }
@@ -31,7 +29,6 @@ const useProgressWhenRendering = () => {
     })
     router.on('finish', (event) => {
       if (verifyOnlyVisit(event)) {
-        nprogress.complete()
         setIsRendering(false)
       }
     })

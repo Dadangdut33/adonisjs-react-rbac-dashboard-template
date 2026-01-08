@@ -214,7 +214,7 @@ const data = {
     },
     {
       title: 'Roles',
-      url: '#',
+      url: route('role.index').path,
       icon: Boxes,
       flat: true,
       requiredPermission: 'role.view',

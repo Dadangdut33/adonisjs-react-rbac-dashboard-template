@@ -9,20 +9,27 @@ export default class RoleRepository extends BaseRepository<typeof Role> {
   }
 
   async createRole(data: RolePayload) {
-    const role = await this.model.create(data)
+    const { permissionIds = [], ...rest } = data
+
+    const role = await this.model.create(rest)
 
     // sync the roles
-    if (data.permissionIds) await role.related('permissions').sync(data.permissionIds)
+    await role.related('permissions').sync(permissionIds)
 
     return role
   }
 
-  async updateRoleWithModel(role: Role, data: RolePayload) {
-    role.merge(data)
+  async updateRole(role: Role, data: RolePayload) {
+    // first make sure that the permission is not protected
+    if (role.is_protected) throw new Error('Role is protected')
+
+    const { permissionIds = [], ...rest } = data
+
+    role.merge(rest)
     await role.save()
 
     // sync the roles
-    if (data.permissionIds) await role.related('permissions').sync(data.permissionIds)
+    await role.related('permissions').sync(permissionIds)
 
     return role
   }

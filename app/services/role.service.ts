@@ -10,19 +10,16 @@ export default class RoleService {
   constructor(protected repo: RoleRepository) {}
 
   async index(queryParams: QueryBuilderParams<typeof Role>) {
-    return await this.repo.query(queryParams)
+    const q = this.repo.query(queryParams)
+    return await this.repo.paginate(q, queryParams)
   }
 
   async create(data: RolePayload) {
     return this.repo.createRole(data)
   }
 
-  async updateWithModel(role: Role, data: RolePayload) {
-    if (role.is_protected) {
-      data.name = role.name // if protected, we must not update the name
-    }
-
-    return this.repo.updateRoleWithModel(role, data)
+  async update(role: Role, data: RolePayload) {
+    return this.repo.updateRole(role, data)
   }
 
   async findOrFail(value: any) {

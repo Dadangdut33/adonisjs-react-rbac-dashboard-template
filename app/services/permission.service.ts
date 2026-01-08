@@ -14,6 +14,14 @@ export default class PermissionService {
     return await this.repo.paginate(q, queryParams)
   }
 
+  async listIdNames() {
+    return this.repo.getListIdNames()
+  }
+
+  async listGroupedByBaseName() {
+    return this.repo.getListGroupedByBaseName()
+  }
+
   async create(data: PermissionPayload) {
     return this.repo.createGeneric(data)
   }

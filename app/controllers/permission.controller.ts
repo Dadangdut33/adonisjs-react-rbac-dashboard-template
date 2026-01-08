@@ -23,17 +23,19 @@ export default class PermissionController {
   ) {}
 
   async viewCreate({ bouncer, inertia }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
+    if (await bouncer.with('PermissionPolicy').denies('viewCreate')) return throwForbidden()
     return inertia.render('dashboard/permission/createEdit', { data: null })
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
+    if (await bouncer.with('PermissionPolicy').denies('viewUpdate')) return throwForbidden()
 
     const id = params.id
     if (!id) return throwNotFound()
 
     const data = await this.permSvc.findOrFail(id)
+    if (data.is_protected) return throwForbidden()
+
     return inertia.render('dashboard/permission/createEdit', {
       data: new PermissionDto(data),
     })

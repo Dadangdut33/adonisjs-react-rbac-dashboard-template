@@ -13,4 +13,24 @@ export default class PermissionRepository extends BaseRepository<typeof Permissi
 
     return this.updateGeneric(permission, data)
   }
+
+  async getListIdNames() {
+    return this.model.query().select('id', 'name')
+  }
+
+  async getListGroupedByBaseName() {
+    const permissions = await this.model.query().select('id', 'name')
+
+    const grouped: Record<string, { id: number; name: string }[]> = {}
+
+    permissions.forEach((perm) => {
+      const baseName = perm.name.split('.')[0]
+      if (!grouped[baseName]) {
+        grouped[baseName] = []
+      }
+      grouped[baseName].push({ id: perm.id, name: perm.name })
+    })
+
+    return grouped
+  }
 }

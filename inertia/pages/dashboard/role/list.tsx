@@ -1,8 +1,8 @@
-import PermissionController from '#controllers/permission.controller'
+import RoleController from '#controllers/role.controller'
 import { RouteNameType } from '#types/app'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
-import { PermissionDto } from '@app/dtos/permission_dto'
+import { RoleDto } from '@app/dtos/role_dto'
 import { Head, Link } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {
@@ -46,13 +46,11 @@ import useSearchFilter from '~/hooks/use_search_filter'
 import DashboardLayout from '~/layouts/dashboard'
 import { cn } from '~/lib/utils'
 
-const baseRoute = 'permission'
-const pageTitle = 'Permission'
-type DataType = PermissionDto
+const baseRoute = 'role'
+const pageTitle = 'Role'
+type DataType = RoleDto
 
-export default function page(
-  props: SharedProps & InferPageProps<PermissionController, 'viewList'>
-) {
+export default function page(props: SharedProps & InferPageProps<RoleController, 'viewList'>) {
   const breadcrumbs = [
     {
       title: 'Dashboard',
@@ -102,7 +100,7 @@ export default function page(
   })
 
   // Columns
-  const key = 'permission-table'
+  const key = 'role-table'
   const columns: DataTableProps<DataType>['columns'] = [
     {
       accessor: 'name',
@@ -113,8 +111,8 @@ export default function page(
           <FilterText
             column={'name'}
             searchFilter={searchFilter}
-            label="Permission Name"
-            description="Filter by permission name"
+            label="Role Name"
+            description="Filter by role name"
           />
         )
       },
@@ -133,7 +131,7 @@ export default function page(
             column={'is_protected'}
             searchFilter={searchFilter}
             label="Is Protected"
-            description="Only show protected permissions"
+            description="Only show protected roles"
             data={[
               { value: 'true', label: 'Yes' },
               { value: 'false', label: 'No' },
@@ -272,19 +270,13 @@ export default function page(
         </Group>
 
         <Alert
-          title="About Protected Permissions"
+          title="About Protected Roles"
           color="red"
           radius="md"
           mt="md"
           icon={<IconAlertCircle />}
         >
-          Permission is tied to each action in the server. Because of that, it is designed so that
-          if you want to to set / unset permission as protected, you must edit it manually in the
-          DB.
-          <br />
-          This is done so that critical part of the application does not get messed up by mistake.
-          To change what is a role allowed to do, you may go to the role page and edit its
-          coresponding permissions.
+          If you want to set / unset a role as protected, you must edit it manually in the DB.
         </Alert>
 
         <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>

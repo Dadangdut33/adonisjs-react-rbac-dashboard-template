@@ -6,6 +6,7 @@ const DashboardController = () => import('#controllers/dashboard.controller')
 const UserController = () => import('#controllers/user.controller')
 const PermissionController = () => import('#controllers/permission.controller')
 const ProfileController = () => import('#controllers/profile.controller')
+const RoleController = () => import('#controllers/role.controller')
 
 router
   .group(() => {
@@ -39,6 +40,19 @@ router
         router.delete('/delete/:id', [PermissionController, 'destroy']).as('permission.destroy')
       })
       .prefix('/permissions')
+
+    router
+      .group(() => {
+        router.get('/', [RoleController, 'viewList']).as('role.index')
+
+        router.get('/create', [RoleController, 'viewCreate']).as('role.create')
+        router.get('/edit/:id', [RoleController, 'viewEdit']).as('role.edit')
+
+        router.post('/store', [RoleController, 'storeOrUpdate']).as('role.store')
+        router.patch('/update', [RoleController, 'storeOrUpdate']).as('role.update')
+        router.delete('/delete/:id', [RoleController, 'destroy']).as('role.destroy')
+      })
+      .prefix('/roles')
   })
   .use([middleware.auth(), middleware.verify_email()])
   .prefix('/dashboard')

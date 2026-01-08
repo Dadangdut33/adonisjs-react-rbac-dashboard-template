@@ -1,10 +1,20 @@
-import PermissionController from '#controllers/permission.controller'
+import RoleController from '#controllers/role.controller'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
 import { router } from '@inertiajs/core'
 import { Head } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
-import { Button, Grid, Group, Paper, Stack, TextInput } from '@mantine/core'
+import {
+  Button,
+  Checkbox,
+  Grid,
+  Group,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconArrowLeft, IconCancel, IconDeviceFloppy } from '@tabler/icons-react'
 import { useModals } from '~/components/core/modal/modal-hooks'
@@ -13,18 +23,16 @@ import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import DashboardLayout from '~/layouts/dashboard'
 import { checkForm } from '~/lib/utils'
 
-const baseRoute = 'permission'
-const basePerm = 'permission'
-const title = 'Permission'
+const baseRoute = 'role'
+const basePerm = 'role'
+const title = 'Role'
 
 export default function Page(
   props: SharedProps &
-    (
-      | InferPageProps<PermissionController, 'viewEdit'>
-      | InferPageProps<PermissionController, 'viewCreate'>
-    )
+    (InferPageProps<RoleController, 'viewEdit'> | InferPageProps<RoleController, 'viewCreate'>)
 ) {
-  const { data } = props
+  const { data, permissions } = props
+  const permissionsKey = Object.keys(permissions)
   const breadcrumbs = [
     {
       title: 'Dashboard',
@@ -46,18 +54,13 @@ export default function Page(
     initialValues: {
       id: data ? data?.id : '',
       name: data ? data?.name : '',
+      permissionIds: data && data.permissions?.length ? data.permissions.map((d) => d.id) : [],
     },
     validate: {
       name: (value) => {
         if (!value) return 'Data is required'
         if (value.length < 1) return 'Data is required'
-
-        // check if the permission is valid it must be like this
-        // permission.what
-        const parts = value.split('.')
-        console.log(parts)
-        if (parts.length === 2 && parts[0].length > 0 && parts[1].length > 0) return null
-        return 'Format does not match. Correct Example: permission.view'
+        return null
       },
     },
   })
@@ -139,14 +142,44 @@ export default function Page(
               <Stack>
                 <TextInput
                   withAsterisk
-                  label="Permission Name"
+                  label="Role Name"
                   placeholder="Name..."
-                  description="Format of permission name is category.action. Example: permission.view"
                   value={form.values.name}
                   error={form.errors.name}
                   disabled={mutation.isPending}
                   onChange={(e) => form.setFieldValue('name', e.target.value)}
                 />
+
+                {/* we create selections of available permissions */}
+                <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
+                  {permissionsKey.map((permission, i) => (
+                    <Paper p="md" shadow="md" radius="md" withBorder key={i}>
+                      <Stack gap={'xs'}>
+                        <Text>{permission}</Text>
+                        {permissions[permission].map((perm: { id: number; name: string }, j) => (
+                          <Checkbox
+                            key={j}
+                            label={perm.name}
+                            checked={form.values.permissionIds?.includes(perm.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                form.setFieldValue('permissionIds', [
+                                  ...form.values.permissionIds!,
+                                  perm.id,
+                                ])
+                              } else {
+                                form.setFieldValue(
+                                  'permissionIds',
+                                  form.values.permissionIds?.filter((id) => id !== perm.id)
+                                )
+                              }
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Paper>
+                  ))}
+                </SimpleGrid>
               </Stack>
             </Paper>
           </Grid.Col>

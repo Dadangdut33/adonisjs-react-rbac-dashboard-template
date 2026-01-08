@@ -40,6 +40,7 @@ import { useState } from 'react'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterRadio } from '~/components/core/table-filter/radio-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
+import { TooltipIfTrue } from '~/components/core/tooltipper'
 import classes from '~/css/TableUtils.module.css'
 import { useDeleteGeneric } from '~/hooks/use_generic_delete'
 import useSearchFilter from '~/hooks/use_search_filter'
@@ -47,6 +48,7 @@ import DashboardLayout from '~/layouts/dashboard'
 import { cn } from '~/lib/utils'
 
 const baseRoute = 'role'
+const basePerm = 'role'
 const pageTitle = 'Role'
 type DataType = RoleDto
 
@@ -64,6 +66,10 @@ export default function page(props: SharedProps & InferPageProps<RoleController,
 
   // Data
   const { data, meta } = props
+
+  const canAdd = props.user?.permissions.includes(`${basePerm}.create`)
+  const canEdit = props.user?.permissions.includes(`${basePerm}.update`)
+  const canDelete = props.user?.permissions.includes(`${basePerm}.delete`)
 
   // State
   const searchFilter = useSearchFilter(`${baseRoute}.index` as RouteNameType)
@@ -195,34 +201,39 @@ export default function page(props: SharedProps & InferPageProps<RoleController,
       render: (data) => {
         const menuItem = (
           <div>
-            <Menu.Item
-              fw={600}
-              fz="sm"
-              color="blue"
-              variant="filled"
-              component={data.is_protected ? undefined : Link}
-              leftSection={<IconEdit size={16} />}
-              href={route(`${baseRoute}.edit`, { params: { id: data.id } }).path}
-              disabled={data.is_protected}
-            >
-              Edit
-            </Menu.Item>
+            <TooltipIfTrue isTrue={!canEdit} label="You don't have permission to edit roles">
+              <Menu.Item
+                fw={600}
+                fz="sm"
+                color="blue"
+                variant="filled"
+                component={data.is_protected || !canEdit ? undefined : Link}
+                leftSection={<IconEdit size={16} />}
+                href={route(`${baseRoute}.edit`, { params: { id: data.id } }).path}
+                disabled={data.is_protected || !canEdit}
+              >
+                Edit
+              </Menu.Item>
+            </TooltipIfTrue>
 
-            <Menu.Item
-              fw={600}
-              fz="sm"
-              color="red"
-              variant="filled"
-              leftSection={<IconTrash size={16} />}
-              onClick={() => {
-                if (data.is_protected) return
-                setSelected(() => data)
-                onOpen()
-              }}
-              disabled={data.is_protected}
-            >
-              Delete
-            </Menu.Item>
+            <TooltipIfTrue isTrue={!canDelete} label="You don't have permission to delete roles">
+              <Menu.Item
+                fw={600}
+                fz="sm"
+                color="red"
+                variant="filled"
+                leftSection={<IconTrash size={16} />}
+                onClick={() => {
+                  if (!canDelete) return
+                  if (data.is_protected) return
+                  setSelected(() => data)
+                  onOpen()
+                }}
+                disabled={data.is_protected || !canDelete}
+              >
+                Delete
+              </Menu.Item>
+            </TooltipIfTrue>
           </div>
         )
         return (
@@ -260,13 +271,16 @@ export default function page(props: SharedProps & InferPageProps<RoleController,
       <Head title={pageTitle} />
       <div className="space-y-4">
         <Group>
-          <Button
-            leftSection={<IconPlus size={18} />}
-            href={route(`${baseRoute}.create`).path}
-            component={Link}
-          >
-            Add
-          </Button>
+          <TooltipIfTrue isTrue={!canAdd} label="You don't have permission to create a new role">
+            <Button
+              leftSection={<IconPlus size={18} />}
+              href={route(`${baseRoute}.create`).path}
+              component={canAdd ? Link : undefined}
+              disabled={!canAdd}
+            >
+              Add
+            </Button>
+          </TooltipIfTrue>
         </Group>
 
         <Alert

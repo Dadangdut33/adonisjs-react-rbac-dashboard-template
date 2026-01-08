@@ -24,7 +24,8 @@ export default class RolePolicy extends CustomBasePolicy {
     return await this.perm.checkInMethod(user, `${this.base}.create`, request, 'POST')
   }
 
-  async update(user: User, request: HttpContext['request']) {
+  async update(user: User, role: Role, request: HttpContext['request']) {
+    if (role.is_protected) return false // protected
     return await this.perm.checkInMethod(user, `${this.base}.update`, request, 'PATCH')
   }
 

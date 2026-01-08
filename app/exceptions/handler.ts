@@ -1,3 +1,5 @@
+import { errors as bouncerErrors } from '@adonisjs/bouncer'
+import { Exception } from '@adonisjs/core/exceptions'
 import { ExceptionHandler, HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
@@ -32,6 +34,19 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    // For handling bouncer authorization errors
+    // we force it to show 403 forbidden page instead of a popup of blank white screen with simple text of not authorized
+    // Must also be an Inertia response
+    if (error instanceof bouncerErrors.E_AUTHORIZATION_FAILURE && ctx.inertia) {
+      return super.handle(
+        new Exception('You are not allowed to perform this action', {
+          status: 403,
+        }),
+        ctx
+      )
+    }
+
+    // Default error handling
     return super.handle(error, ctx)
   }
 

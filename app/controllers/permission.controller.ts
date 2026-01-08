@@ -22,12 +22,12 @@ export default class PermissionController {
   ) {}
 
   async viewCreate({ bouncer, inertia }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('viewCreate')) return throwForbidden()
+    await bouncer.with('PermissionPolicy').authorize('viewCreate')
     return inertia.render('dashboard/permission/createEdit', { data: null })
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('viewEdit')) return throwForbidden()
+    await bouncer.with('PermissionPolicy').authorize('viewEdit')
 
     const id = params.id
     if (!id) return throwNotFound()
@@ -41,7 +41,7 @@ export default class PermissionController {
   }
 
   async viewList({ request, bouncer, inertia }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('view')) return throwForbidden()
+    await bouncer.with('PermissionPolicy').authorize('view')
 
     const q = mapRequestToQueryParams(request)
     const dataQ = await this.permSvc.index(q)
@@ -59,13 +59,12 @@ export default class PermissionController {
       const payload = await request.validateUsing(createEditPermissionValidator)
 
       if (request.method() === 'POST') {
-        if (await bouncer.with('PermissionPolicy').denies('create', request)) throwForbidden()
+        await bouncer.with('PermissionPolicy').authorize('create', request)
 
         await this.permSvc.create(payload)
       } else if (request.method() === 'PATCH') {
         const permission = await this.permSvc.findOrFail(payload.id!)
-        if (await bouncer.with('PermissionPolicy').denies('update', permission, request))
-          throwForbidden()
+        await bouncer.with('PermissionPolicy').authorize('update', permission, request)
 
         await this.permSvc.update(permission, payload)
       } else {
@@ -89,7 +88,7 @@ export default class PermissionController {
     try {
       const id = params.id
       const permission = await this.permSvc.findOrFail(id)
-      if (await bouncer.with('PermissionPolicy').denies('delete', permission)) throwForbidden()
+      await bouncer.with('PermissionPolicy').authorize('delete', permission)
 
       await this.permSvc.deletePermission(id)
 

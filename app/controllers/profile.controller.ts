@@ -1,4 +1,4 @@
-import { getMethodActName, throwForbidden } from '#lib/utils'
+import { getMethodActName } from '#lib/utils'
 import Media from '#models/media'
 import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
@@ -19,7 +19,7 @@ export default class ProfileController {
 
   async view({ bouncer, auth, inertia }: HttpContext) {
     const userId = auth.user?.id
-    if (await bouncer.with('ProfilePolicy').denies('view', userId!)) return throwForbidden()
+    await bouncer.with('ProfilePolicy').authorize('view', userId!)
 
     auth.user!.load('roles') // load roles
     const data = await this.profileSvc.findByUid(userId!)
@@ -40,9 +40,7 @@ export default class ProfileController {
     try {
       const userId = auth.user?.id
       const data = await request.validateUsing(updateProfileValidator)
-
-      if (await bouncer.with('ProfilePolicy').denies('update', userId!, request))
-        return throwForbidden()
+      await bouncer.with('ProfilePolicy').authorize('update', userId!, request)
 
       let media: Media | null = null
       const profile = await this.profileSvc.findByUid(userId!)
@@ -70,7 +68,7 @@ export default class ProfileController {
   async getAvatar({ bouncer, auth, response }: HttpContext) {
     try {
       const userId = auth.user?.id
-      if (await bouncer.with('ProfilePolicy').denies('view', userId!)) return throwForbidden()
+      await bouncer.with('ProfilePolicy').authorize('view', userId!)
 
       const profile = await this.profileSvc.findByUid(userId!)
       const url = await this.mediaSvc.getMediaURLById(profile?.avatar_id!)

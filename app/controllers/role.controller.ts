@@ -23,13 +23,13 @@ export default class RoleController {
   ) {}
 
   async viewCreate({ bouncer, inertia }: HttpContext) {
-    if (await bouncer.with('RolePolicy').denies('viewCreate')) return throwForbidden()
+    await bouncer.with('RolePolicy').authorize('viewCreate')
     const permissions = await this.permSvc.listGroupedByBaseName()
     return inertia.render('dashboard/role/createEdit', { data: null, permissions: permissions })
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
-    if (await bouncer.with('RolePolicy').denies('viewEdit')) return throwForbidden()
+    await bouncer.with('RolePolicy').authorize('viewEdit')
 
     const id = params.id
     if (!id) return throwNotFound()
@@ -47,7 +47,7 @@ export default class RoleController {
   }
 
   async viewList({ bouncer, request, inertia }: HttpContext) {
-    if (await bouncer.with('RolePolicy').denies('view')) return throwForbidden()
+    await bouncer.with('RolePolicy').authorize('view')
 
     const q = mapRequestToQueryParams(request)
     const dataQ = await this.roleSvc.index(q)
@@ -65,12 +65,12 @@ export default class RoleController {
       const payload = await request.validateUsing(createEditRoleValidator)
 
       if (request.method() === 'POST') {
-        if (await bouncer.with('RolePolicy').denies('create', request)) throwForbidden()
+        await bouncer.with('RolePolicy').authorize('create', request)
 
         await this.roleSvc.create(payload)
       } else if (request.method() === 'PATCH') {
         const role = await this.roleSvc.findOrFail(payload.id!)
-        if (await bouncer.with('RolePolicy').denies('update', request)) throwForbidden()
+        await bouncer.with('RolePolicy').authorize('update', role, request)
 
         await this.roleSvc.update(role, payload)
       } else {
@@ -94,7 +94,7 @@ export default class RoleController {
     try {
       const id = params.id
       const role = await this.roleSvc.findOrFail(id)
-      if (await bouncer.with('RolePolicy').denies('delete', role)) throwForbidden()
+      await bouncer.with('RolePolicy').authorize('delete', role)
 
       await this.roleSvc.deleteRole(id)
 

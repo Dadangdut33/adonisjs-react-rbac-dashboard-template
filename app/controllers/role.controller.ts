@@ -13,7 +13,7 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import { route } from '@izzyjs/route/client'
 
-import { RoleDto } from '../dtos/role_dto.js'
+import { RoleDto } from '../dtos/role.dto.js'
 
 @inject()
 export default class RoleController {
@@ -29,7 +29,7 @@ export default class RoleController {
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
-    if (await bouncer.with('RolePolicy').denies('viewUpdate')) return throwForbidden()
+    if (await bouncer.with('RolePolicy').denies('viewEdit')) return throwForbidden()
 
     const id = params.id
     if (!id) return throwNotFound()

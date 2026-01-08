@@ -1,6 +1,6 @@
 import Role from '#models/role'
 
-import { PermissionDto } from './permission_dto.js'
+import { PermissionDto } from './permission.dto.js'
 
 export class RoleDto {
   readonly id: number

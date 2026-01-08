@@ -1,12 +1,11 @@
 import Token from '#models/token'
 import User from '#models/user'
+import { TokenType } from '#types/models'
 
 import stringHelpers from '@adonisjs/core/helpers/string'
 import { DateTime } from 'luxon'
 
 import BaseRepository from './_base_repository.js'
-
-type TokenType = 'PASSWORD_RESET' | 'VERIFY_EMAIL'
 
 /**
  * Repository class for managing user tokens such as email verification and password reset tokens.

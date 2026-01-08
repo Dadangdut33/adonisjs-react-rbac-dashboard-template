@@ -1,3 +1,4 @@
+import { PermissionDto } from '#dto/permission.dto'
 import {
   getMethodActName,
   mapRequestToQueryParams,
@@ -13,8 +14,6 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import { route } from '@izzyjs/route/client'
 
-import { PermissionDto } from '../dtos/permission_dto.js'
-
 @inject()
 export default class PermissionController {
   constructor(
@@ -28,7 +27,7 @@ export default class PermissionController {
   }
 
   async viewEdit({ bouncer, inertia, params }: HttpContext) {
-    if (await bouncer.with('PermissionPolicy').denies('viewUpdate')) return throwForbidden()
+    if (await bouncer.with('PermissionPolicy').denies('viewEdit')) return throwForbidden()
 
     const id = params.id
     if (!id) return throwNotFound()

@@ -1,8 +1,8 @@
 import PermissionController from '#controllers/permission.controller'
+import { PermissionDto } from '#dto/permission.dto'
 import { RouteNameType } from '#types/app'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
-import { PermissionDto } from '@app/dtos/permission_dto'
 import { Head, Link } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {

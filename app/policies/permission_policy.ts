@@ -16,7 +16,7 @@ export default class PermissionPolicy extends CustomBasePolicy {
     return await this.perm.check(user, `${this.base}.create`)
   }
 
-  async viewUpdate(user: User) {
+  async viewEdit(user: User) {
     return await this.perm.check(user, `${this.base}.update`)
   }
 

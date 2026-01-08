@@ -1,8 +1,8 @@
 import RoleController from '#controllers/role.controller'
+import { RoleDto } from '#dto/role.dto'
 import { RouteNameType } from '#types/app'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
-import { RoleDto } from '@app/dtos/role_dto'
 import { Head, Link } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {

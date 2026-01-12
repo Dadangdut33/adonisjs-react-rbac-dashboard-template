@@ -67,12 +67,12 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @computed()
   public get isAdmin() {
-    return this.roles?.some((role) => role.name === 'ADMIN') ?? false
+    return this.roles?.some((role) => role.name === 'Admin') ?? false
   }
 
   @computed()
   public get isSuperAdmin() {
-    return this.roles?.some((role) => role.name === 'SUPER_ADMIN') ?? false
+    return this.roles?.some((role) => role.name === 'Super Admin') ?? false
   }
 
   @manyToMany(() => Role, {

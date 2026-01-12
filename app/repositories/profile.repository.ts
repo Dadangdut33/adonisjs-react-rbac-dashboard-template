@@ -9,9 +9,10 @@ export default class ProfileRepository extends BaseRepository<typeof Profile> {
   }
 
   async updateProfile(user_id: string, data: UpdateProfilePayload) {
+    const { avatar, ...rest } = data
     const profile = await this.model.updateOrCreate(
       { user_id }, // search criteria
-      data // data to update or create
+      rest // data to update or create
     )
 
     return profile

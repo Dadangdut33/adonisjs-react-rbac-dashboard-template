@@ -2,6 +2,7 @@ import { type RequestError } from '#types/app'
 
 import { FormErrors, UseFormReturnType } from '@mantine/form'
 import { type ClassValue, clsx } from 'clsx'
+import { isString } from 'lodash-es'
 import { twMerge } from 'tailwind-merge'
 import { NotifyError } from '~/components/core/notify'
 
@@ -92,4 +93,16 @@ export function getInitials(name: string) {
   }
 
   return firstInitial || lastInitial || ''
+}
+
+export function getImageUrlOrCreateObjectUrl(url: string | File | null | undefined) {
+  if (!url) return null
+  if (isString(url)) return url
+  return URL.createObjectURL(url)
+}
+
+export function getImagePreviewURL(file: File | null, fallbackData?: string | null) {
+  if (file) return URL.createObjectURL(file)
+  if (fallbackData) return fallbackData
+  return null
 }

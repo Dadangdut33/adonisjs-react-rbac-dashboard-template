@@ -6,6 +6,7 @@ import { TokenDto } from './token.dto.js'
 
 export class UserDto {
   readonly id: string
+  readonly username: string
   readonly full_name: string
   readonly email: string
   readonly is_email_verified: boolean
@@ -19,6 +20,7 @@ export class UserDto {
 
   constructor(user: User) {
     this.id = user.id
+    this.username = user.username
     this.full_name = user.full_name
     this.email = user.email
     this.is_email_verified = user.is_email_verified

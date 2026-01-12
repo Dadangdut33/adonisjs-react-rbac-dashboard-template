@@ -12,10 +12,14 @@ export default class ProfileService {
   }
 
   async create(data: CreateProfilePayload) {
-    return this.repo.createGeneric(data)
+    const { avatar, ...rest } = data
+    return this.repo.createGeneric({
+      ...rest,
+      user_id: data.user_id,
+    })
   }
 
-  async update(user_id: string, data: UpdateProfilePayload & { avatar_id?: string | null }) {
+  async update(user_id: string, data: UpdateProfilePayload) {
     return this.repo.updateProfile(user_id, data)
   }
 

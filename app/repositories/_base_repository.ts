@@ -1,6 +1,7 @@
 import { parseRelationColumn, parseSelectPreload } from '#lib/utils'
 import { QueryBuilderParams } from '#types/app'
 
+import { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import {
   LucidModel,
   ModelAdapterOptions,
@@ -306,21 +307,28 @@ export default abstract class BaseRepository<T extends LucidModel> {
 
   public async updateGeneric<P extends Partial<ModelAttributes<InstanceType<T>>>>(
     instance: InstanceType<T>,
-    data: P
+    data: P,
+    trx?: TransactionClientContract
   ) {
+    if (trx) instance.useTransaction(trx)
     instance.merge(data)
     return instance.save()
   }
 
-  public async createGeneric<P extends Partial<ModelAttributes<InstanceType<T>>>>(data: P) {
+  public async createGeneric<P extends Partial<ModelAttributes<InstanceType<T>>>>(
+    data: P,
+    trx?: TransactionClientContract
+  ) {
     const instance = new this.model()
+    if (trx) instance.useTransaction(trx)
     instance.fill(data)
     return instance.save()
   }
 
-  public async deleteGeneric(id: any) {
+  public async deleteGeneric(id: any, trx?: TransactionClientContract) {
     const instance = await this.findById(id)
     if (!instance) throw new Error(`${this.model.name} not found`)
+    if (trx) instance.useTransaction(trx)
     await instance.delete()
   }
 

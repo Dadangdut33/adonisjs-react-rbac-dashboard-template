@@ -22,12 +22,12 @@ export default class UserPolicy extends CustomBasePolicy {
   }
 
   async viewEdit(user: User) {
-    return await this.perm.check(user, `${this.base}.edit`)
+    return await this.perm.check(user, `${this.base}.update`)
   }
 
   async create(user: User, payload: UserPayload, request: HttpContext['request']) {
     // first check if they have permission for the route or not
-    if (await this.perm.checkInMethod(user, `${this.base}.create`, request, 'POST')) return false
+    if (!(await this.perm.checkInMethod(user, `${this.base}.create`, request, 'POST'))) return false
 
     // then we must check they must be admin level or super admin to do this
     if (!user.roles.some((r) => this.restrictedRoles.includes(r.id))) return false
@@ -41,7 +41,8 @@ export default class UserPolicy extends CustomBasePolicy {
 
   async update(user: User, payload: UserPayload, request: HttpContext['request']) {
     // first check if they have permission for the route or not
-    if (await this.perm.checkInMethod(user, `${this.base}.update`, request, 'PATCH')) return false
+    if (!(await this.perm.checkInMethod(user, `${this.base}.update`, request, 'PATCH')))
+      return false
 
     // then we must check they must be admin level or super admin to do this
     if (!user.roles.some((r) => this.restrictedRoles.includes(r.id))) return false

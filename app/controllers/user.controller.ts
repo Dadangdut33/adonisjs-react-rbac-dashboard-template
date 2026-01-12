@@ -5,6 +5,8 @@ import {
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
+import MediaService from '#services/media.service'
+import ProfileService from '#services/profile.service'
 import RoleService from '#services/role.service'
 import UserService from '#services/user.service'
 import { PaginationMeta } from '#types/app'
@@ -12,16 +14,19 @@ import { createEditUserValidator } from '#validators/user'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import { route } from '@izzyjs/route/client'
 
 @inject()
 export default class UserController {
   constructor(
     protected userSvc: UserService,
-    protected roleSvc: RoleService
+    protected roleSvc: RoleService,
+    protected mediaSvc: MediaService,
+    protected profileSvc: ProfileService
   ) {}
 
   async viewCreate({ bouncer, inertia, auth }: HttpContext) {
-    if (await bouncer.with('UserPolicy').denies('viewCreate')) return throwForbidden()
+    await bouncer.with('UserPolicy').authorize('viewCreate')
 
     // we must load current user role first
     await auth.user?.load('roles')
@@ -31,13 +36,14 @@ export default class UserController {
   }
 
   async viewEdit({ bouncer, inertia, params, auth }: HttpContext) {
-    if (await bouncer.with('UserPolicy').denies('viewEdit')) return throwForbidden()
+    await bouncer.with('UserPolicy').authorize('viewEdit')
 
     const id = params.id
     if (!id) return throwNotFound()
 
     const data = await this.userSvc.findOrFail(id)
-    await data.load('profile') // load profile relation
+    await data.load('profile')
+    await data.load('roles')
 
     // we must load current user role first
     await auth.user?.load('roles')
@@ -50,7 +56,7 @@ export default class UserController {
   }
 
   async viewList({ request, response, bouncer, inertia }: HttpContext) {
-    if (await bouncer.with('UserPolicy').denies('view')) return throwForbidden()
+    await bouncer.with('UserPolicy').authorize('view')
 
     try {
       const q = mapRequestToQueryParams(request)
@@ -73,16 +79,23 @@ export default class UserController {
   async storeOrUpdate({ bouncer, request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(createEditUserValidator)
-      if (await bouncer.with('UserPolicy').denies('create', payload, request))
-        return throwForbidden()
-      if (await bouncer.with('UserPolicy').denies('update', payload, request))
-        return throwForbidden()
 
-      await this.userSvc.createUpdate(payload)
+      if (request.method() === 'POST') {
+        await bouncer.with('UserPolicy').authorize('create', payload, request)
+
+        await this.userSvc.create(payload)
+      } else if (request.method() === 'PATCH') {
+        await bouncer.with('UserPolicy').authorize('update', payload, request)
+
+        await this.userSvc.update(payload)
+      } else {
+        throwForbidden()
+      }
 
       return response.status(200).json({
         status: 'success',
         message: `Successfully ${getMethodActName(request)} user.`,
+        redirect_to: route(`user.index`).path,
       })
     } catch (error) {
       return response.status(error.status || 500).json({

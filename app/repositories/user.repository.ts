@@ -7,7 +7,7 @@ export default class UserRepository extends BaseRepository<typeof User> {
     super(User)
   }
 
-  async updateOrCreateUser(data: UserPayload) {
+  async updateUser(data: UserPayload) {
     const { id } = data
 
     const user = await this.model.updateOrCreate(

@@ -40,7 +40,10 @@ export default class Profile extends BaseModel {
   @computed()
   public get avatarUrl() {
     if (!this.avatar_id) return null
-    return router.builder().params({ id: this.avatar_id }).makeSigned('api.v1.media.redirect')
+    return router
+      .builder()
+      .params({ id: this.avatar_id })
+      .makeSigned('api.v1.media.redirect', { expiresIn: '1h' })
   }
 
   @column.dateTime({ autoCreate: true, serializeAs: null })

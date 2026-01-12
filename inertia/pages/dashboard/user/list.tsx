@@ -74,8 +74,8 @@ function mapRoleToBadgeComponent(role: string) {
   )
 }
 
-const disableBtnCheck = (current: AuthUser, target: DataType) => {
-  if (current.id === target.id) {
+const disableBtnCheck = (current: AuthUser, target: DataType, allowEditOwnAccount = false) => {
+  if (!allowEditOwnAccount && current.id === target.id) {
     return true // Disable button if it's the current user
   }
 
@@ -182,6 +182,23 @@ export default function page(props: PageProps) {
         )
       },
       filtering: searchFilter.searchBy.full_name ? true : false,
+    },
+    {
+      accessor: 'username',
+      title: 'Username',
+      toggleable: true,
+      sortable: true,
+      filter: () => {
+        return (
+          <FilterText
+            column={'username'}
+            searchFilter={searchFilter}
+            label="Username"
+            description="Filter by user's username"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.username ? true : false,
     },
     {
       accessor: 'email',
@@ -331,6 +348,7 @@ export default function page(props: PageProps) {
                   setSelected(() => record)
                   onOpen()
                 }}
+                disabled={disableBtnCheck(props.user!, record, false)}
               >
                 Delete
               </Menu.Item>
@@ -344,7 +362,7 @@ export default function page(props: PageProps) {
                 <ActionIcon
                   className="mx-auto"
                   variant="light"
-                  disabled={disableBtnCheck(props.user!, record)}
+                  disabled={disableBtnCheck(props.user!, record, true)}
                 >
                   <IconDotsVertical size={16} />
                 </ActionIcon>

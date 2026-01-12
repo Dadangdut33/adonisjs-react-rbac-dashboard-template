@@ -24,6 +24,7 @@ import AuthLayout from '~/layouts/auth'
 import { PASS_REGEX } from '~/lib/constants'
 import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
+const maxWidth = 'max-w-md'
 export default function Page(props: SharedProps & InferPageProps<AuthController, 'viewRegister'>) {
   const [_, setTimeoutVerifEmailStart] = useLocalStorage<null | number>({
     key: 'timeout_verify_email_start',
@@ -99,7 +100,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
   const strengthPassConfirm = getPasswordStrength(confirmation, confirmationMatch, true)
 
   return (
-    <AuthLayout>
+    <AuthLayout alertClassName={cn(maxWidth, 'mx-auto px-1')}>
       <Head>
         <title>Register</title>
       </Head>
@@ -115,7 +116,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
         </Button>
       </Box>
 
-      <div className={cn('flex flex-col gap-4 max-w-md mx-auto')}>
+      <div className={cn('flex flex-col gap-4', maxWidth, 'mx-auto')}>
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Register</CardTitle>

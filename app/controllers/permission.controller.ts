@@ -2,6 +2,7 @@ import { PermissionDto } from '#dto/permission.dto'
 import {
   getMethodActName,
   mapRequestToQueryParams,
+  returnError,
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
@@ -77,10 +78,7 @@ export default class PermissionController {
         redirect_to: route('permission.index').path,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `PERMISSION_${request.method()}`, { logErrors: true })
     }
   }
 
@@ -97,10 +95,7 @@ export default class PermissionController {
         message: 'Successfully deleted permission.',
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, 'PERMISSION_DELETE', { logErrors: true })
     }
   }
 }

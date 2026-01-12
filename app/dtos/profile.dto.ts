@@ -8,6 +8,7 @@ export class ProfileDto {
   readonly bio: string
   readonly user_id: string
   readonly avatar?: MediaDto
+  readonly avatarUrl?: string | null
   readonly created_at: string // dto needs to be string
   readonly updated_at: string
 
@@ -17,6 +18,7 @@ export class ProfileDto {
     this.bio = profile.bio
     this.user_id = profile.user_id
     this.avatar = profile.avatar ? new MediaDto(profile.avatar) : undefined
+    this.avatarUrl = profile.avatarUrl
     this.created_at = profile.created_at.toString()
     this.updated_at = profile.updated_at ? profile.updated_at.toString() : ''
   }

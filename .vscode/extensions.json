@@ -1,0 +1,12 @@
+{
+	"recommendations": [
+		"formulahendry.auto-complete-tag",
+		"mikestead.dotenv",
+		"EditorConfig.EditorConfig",
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"meganrogge.template-string-converter",
+    "aaron-bond.better-comments",
+    "nhedger.inertia"
+	],
+}

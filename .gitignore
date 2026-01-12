@@ -16,10 +16,5 @@ public/assets
 npm-debug.log
 yarn-error.log
 
-# Editors specific
-.fleet
-.idea
-.vscode
-
 # Platform specific
 .DS_Store

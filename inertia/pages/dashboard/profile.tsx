@@ -39,15 +39,12 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
     },
   })
 
-  const handleSubmit = () => {
-    if (!checkForm(form)) return
-    mutation.mutate(form.values)
-  }
-
-  const onSave = () =>
-    ConfirmAddModal({
-      onConfirm: handleSubmit,
-    })
+  const onSave = ConfirmAddModal({
+    onConfirm: () => {
+      if (!checkForm(form)) return
+      mutation.mutate(form.values)
+    },
+  })
 
   return (
     <DashboardLayout

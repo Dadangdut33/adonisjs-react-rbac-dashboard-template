@@ -1,6 +1,7 @@
 import {
   getMethodActName,
   mapRequestToQueryParams,
+  returnError,
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
@@ -35,7 +36,6 @@ export default class RoleController {
     if (!id) return throwNotFound()
 
     const data = await this.roleSvc.findOrFail(id)
-    if (data.is_protected) return throwForbidden()
     await data.load('permissions') // load permissions relation
 
     const permissions = await this.permSvc.listGroupedByBaseName()
@@ -69,8 +69,8 @@ export default class RoleController {
 
         await this.roleSvc.create(payload)
       } else if (request.method() === 'PATCH') {
+        await bouncer.with('RolePolicy').authorize('update', request)
         const role = await this.roleSvc.findOrFail(payload.id!)
-        await bouncer.with('RolePolicy').authorize('update', role, request)
 
         await this.roleSvc.update(role, payload)
       } else {
@@ -83,10 +83,7 @@ export default class RoleController {
         redirect_to: route('role.index').path,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `ROLE_${request.method()}`, { logErrors: true })
     }
   }
 
@@ -103,10 +100,7 @@ export default class RoleController {
         message: 'Successfully deleted role.',
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `ROLE_DELETE`, { logErrors: true })
     }
   }
 }

@@ -1,4 +1,4 @@
-import { mapReqErrors, reqErrorsToString, throwNotFound } from '#lib/utils'
+import { returnError, throwNotFound } from '#lib/utils'
 import AuthService from '#services/auth.service'
 import env from '#start/env'
 import {
@@ -12,9 +12,7 @@ import {
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import logger from '@adonisjs/core/services/logger'
 import { route } from '@izzyjs/route/client'
-import { randomUUID } from 'node:crypto'
 
 @inject()
 export default class AuthController {
@@ -92,14 +90,7 @@ export default class AuthController {
         redirect_to: route('dashboard.view').path,
       })
     } catch (error) {
-      const uuid = randomUUID()
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_LOGIN_USER ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errorss: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_LOGIN_USER', { logErrors: true })
     }
   }
 
@@ -125,14 +116,7 @@ export default class AuthController {
         redirect_to: route('auth.login').path,
       })
     } catch (error) {
-      const uuid = randomUUID()
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REGISTER_USER ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_REGISTER_USER', { logErrors: true })
     }
   }
 
@@ -167,14 +151,7 @@ export default class AuthController {
         message: 'Request for new email verification sent successfully',
       })
     } catch (error) {
-      const uuid = randomUUID()
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_REQUEST_VERIFY_EMAIL ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_REQUEST_VERIFY_EMAIL', { logErrors: true })
     }
   }
 
@@ -196,14 +173,7 @@ export default class AuthController {
       session.flash('success', 'Email verified successfully')
       return response.redirect().toRoute('dashboard.view')
     } catch (error) {
-      const uuid = randomUUID()
-      logger.error(error, 'AUTH_VERIFY_EMAIL ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_VERIFY_EMAIL', { logErrors: true })
     }
   }
 
@@ -229,15 +199,7 @@ export default class AuthController {
         message: 'Password reset email sent successfully',
       })
     } catch (error) {
-      const uuid = randomUUID()
-      if (error.type !== 'ValidationError')
-        logger.error(error, 'AUTH_REQUEST_RESET_PASSWORD ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_REQUEST_RESET_PASSWORD', { logErrors: true })
     }
   }
 
@@ -258,14 +220,7 @@ export default class AuthController {
         redirect_to: route('auth.login').path,
       })
     } catch (error) {
-      const uuid = randomUUID()
-      if (error.type !== 'ValidationError') logger.error(error, 'AUTH_RESET_PASSWORD ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_RESET_PASSWORD', { logErrors: true })
     }
   }
 
@@ -298,14 +253,7 @@ export default class AuthController {
         })
       }
     } catch (error) {
-      const uuid = randomUUID()
-      logger.error(error, 'AUTH_LOGOUT ' + uuid)
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-        unique_error_uuid: uuid,
-      })
+      return returnError(response, error, 'AUTH_LOGOUT', { logErrors: true })
     }
   }
 
@@ -319,11 +267,7 @@ export default class AuthController {
         data: user,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: reqErrorsToString(error) || error.message || 'Something went wrong',
-        form_errors: mapReqErrors(error),
-      })
+      return returnError(response, error, 'AUTH_GET_USER', { logErrors: true })
     }
   }
 }

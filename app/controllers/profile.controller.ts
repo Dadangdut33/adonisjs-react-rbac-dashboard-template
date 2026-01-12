@@ -1,10 +1,11 @@
-import { getMethodActName } from '#lib/utils'
+import { getMethodActName, returnError } from '#lib/utils'
 import Media from '#models/media'
 import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
 import ProfileService from '#services/profile.service'
 import { updateProfileValidator } from '#validators/profile'
 
+import cache from '@adonisjs/cache/services/main'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import logger from '@adonisjs/core/services/logger'
@@ -58,30 +59,33 @@ export default class ProfileController {
         message: `Successfully ${getMethodActName(request)} user.`,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `PROFILE_UPDATE`, { logErrors: true })
     }
   }
 
-  async getAvatar({ bouncer, auth, response }: HttpContext) {
+  async getAvatarAPI({ bouncer, auth, response }: HttpContext) {
     try {
       const userId = auth.user?.id
       await bouncer.with('ProfilePolicy').authorize('view', userId!)
 
       const profile = await this.profileSvc.findByUid(userId!)
-      const url = await this.mediaSvc.getMediaURLById(profile?.avatar_id!)
+      const url = await cache.getOrSet({
+        key: 'media-' + profile?.avatar_id, // since we use the avatar id as the key, if the avatar is changed, the cache will be invalidated
+        ttl: '1h',
+        factory: async () => {
+          return await this.mediaSvc.getMediaURLById(profile?.avatar_id!)
+        },
+        onFactoryError(error) {
+          logger.error(error, 'PROFILE_GET_AVATAR_FACTORY_ERROR ' + userId!)
+        },
+      })
 
       return response.status(200).json({
         status: 'success',
         data: url,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `PROFILE_GET_AVATAR`, { logErrors: true })
     }
   }
 }

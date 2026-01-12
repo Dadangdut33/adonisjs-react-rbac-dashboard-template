@@ -10,6 +10,7 @@ export class MediaDto {
   readonly hash: string
   readonly created_at: string // dto needs to be string
   readonly updated_at: string
+  url?: string
 
   constructor(media: Media) {
     this.id = media.id
@@ -21,6 +22,11 @@ export class MediaDto {
     this.hash = media.hash
     this.created_at = media.created_at.toString()
     this.updated_at = media.updated_at ? media.updated_at.toString() : ''
+    this.loadUrl(media.url)
+  }
+
+  private async loadUrl(url: Promise<string>) {
+    this.url = await url
   }
 
   // Collect is for multiple dtos

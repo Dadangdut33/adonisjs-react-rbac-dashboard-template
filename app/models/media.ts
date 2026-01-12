@@ -1,6 +1,7 @@
 import Tables from '#enums/tables'
+import { getMediaUrlByKey } from '#lib/media_helper'
 
-import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, column, computed } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
 
@@ -41,5 +42,10 @@ export default class Media extends BaseModel {
   @beforeCreate()
   static assignUuid(self: Media) {
     self.id = randomUUID()
+  }
+
+  @computed()
+  public get url() {
+    return getMediaUrlByKey(this.drive_key)
   }
 }

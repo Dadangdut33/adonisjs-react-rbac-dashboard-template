@@ -16,11 +16,22 @@ export default abstract class BaseRepository<T extends LucidModel> {
     this.model = model
   }
 
-  private preloadQuery(
-    query: ModelQueryBuilderContract<T>,
-    preload: ExtractModelRelations<InstanceType<T>>[]
-  ) {
-    preload.forEach((relation) => query.preload(relation))
+  private preloadQuery(query: ModelQueryBuilderContract<T>, preload: string[]) {
+    const relations: Record<string, string[]> = {}
+
+    preload.forEach((item) => {
+      const [relation, ...rest] = item.split('.')
+      if (!relations[relation]) relations[relation] = []
+      if (rest.length) relations[relation].push(rest.join('.'))
+    })
+
+    for (const relation in relations) {
+      query.preload(relation as any, (subQuery: any) => {
+        if (relations[relation].length > 0) {
+          this.preloadQuery(subQuery, relations[relation])
+        }
+      })
+    }
   }
 
   public query(params: QueryBuilderParams<T>) {
@@ -29,7 +40,7 @@ export default abstract class BaseRepository<T extends LucidModel> {
       searchBy = {},
       sortBy,
       sortDirection,
-      preload = [],
+      preload = [], // example: ['roles', 'profile', 'profile.avatar']
       filters = {},
       searchRelations = [],
       searchableCol,

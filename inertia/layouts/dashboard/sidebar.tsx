@@ -207,7 +207,7 @@ const data = {
   management: [
     {
       title: 'Users',
-      url: '#',
+      url: route('user.index').path,
       icon: UsersRound,
       flat: true,
       requiredPermission: 'user.view',

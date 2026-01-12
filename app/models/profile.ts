@@ -1,6 +1,7 @@
 import Tables from '#enums/tables'
 
-import { BaseModel, beforeCreate, belongsTo, column, hasOne } from '@adonisjs/lucid/orm'
+import router from '@adonisjs/core/services/router'
+import { BaseModel, beforeCreate, belongsTo, column, computed, hasOne } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasOne } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
@@ -32,9 +33,16 @@ export default class Profile extends BaseModel {
   declare user: BelongsTo<typeof User>
 
   @hasOne(() => Media, {
-    foreignKey: 'avatar_id',
+    localKey: 'avatar_id',
+    foreignKey: 'id',
   })
-  declare avatar: HasOne<typeof Media>
+  declare avatar?: HasOne<typeof Media>
+
+  @computed()
+  public get avatarUrl() {
+    if (!this.avatar_id) return null
+    return router.builder().params({ id: this.avatar_id }).makeSigned('api.v1.media.redirect')
+  }
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   declare created_at: DateTime

@@ -180,11 +180,13 @@ export default function FlashAlert({
   state,
   mb = 'md',
   mt,
+  className = 'px-4',
   ...others
 }: {
   state: FlashAlertType
   mb?: StyleProp<MantineSpacing>
   mt?: StyleProp<MantineSpacing>
+  className?: string
   others?: AlertProps
 }) {
   const [showSuccess, setShowSuccess] = useState(true)
@@ -203,7 +205,7 @@ export default function FlashAlert({
 
   if (!atLeastOneAlert) return null
   return (
-    <Stack gap="md" mb={mb} mt={mt} px="md">
+    <Stack gap="md" mb={mb} mt={mt} className={className}>
       {state.success && (
         <SuccessAlert
           state={state}

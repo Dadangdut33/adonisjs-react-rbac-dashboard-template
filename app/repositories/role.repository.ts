@@ -8,6 +8,15 @@ export default class RoleRepository extends BaseRepository<typeof Role> {
     super(Role)
   }
 
+  async getList() {
+    return this.model.query().orderBy('name', 'asc')
+  }
+
+  async getListNoAdmin() {
+    const dontIncludeNames = ['Super Admin', 'Admin']
+    return this.model.query().whereNotIn('name', dontIncludeNames).orderBy('name', 'asc')
+  }
+
   async createRole(data: RolePayload) {
     const { permissionIds = [], ...rest } = data
 
@@ -20,9 +29,6 @@ export default class RoleRepository extends BaseRepository<typeof Role> {
   }
 
   async updateRole(role: Role, data: RolePayload) {
-    // first make sure that the permission is not protected
-    if (role.is_protected) throw new Error('Role is protected')
-
     const { permissionIds = [], ...rest } = data
 
     role.merge(rest)

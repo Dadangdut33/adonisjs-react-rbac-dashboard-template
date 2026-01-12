@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 
 type SearchFilerProps<T> = {
   isFetching: boolean
+  searchParamIsSet: boolean
   search: string
   setSearch: (e: string) => void
   searchBy: Record<string, string>
@@ -32,6 +33,9 @@ export default function useSearchFilter<T>(
     columnAccessor: defaultColumnSort,
     direction: 'desc',
   })
+
+  // flag to see if any search is done
+  const searchParamIsSet = search !== '' || Object.keys(searchBy).length > 0
 
   // Listen for Inertia events to toggle loading state
   useEffect(() => {
@@ -128,6 +132,7 @@ export default function useSearchFilter<T>(
 
   return {
     isFetching,
+    searchParamIsSet,
     search,
     setSearch,
     searchBy,

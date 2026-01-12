@@ -1,5 +1,4 @@
 import PermissionController from '#controllers/permission.controller'
-import { PermissionDto } from '#dto/permission.dto'
 import { RouteNameType } from '#types/app'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
@@ -50,11 +49,10 @@ import { cn } from '~/lib/utils'
 const baseRoute = 'permission'
 const basePerm = 'permission'
 const pageTitle = 'Permission'
-type DataType = PermissionDto
+type PageProps = SharedProps & InferPageProps<PermissionController, 'viewList'>
+type DataType = PageProps['data'][number]
 
-export default function page(
-  props: SharedProps & InferPageProps<PermissionController, 'viewList'>
-) {
+export default function page(props: PageProps) {
   const breadcrumbs = [
     {
       title: 'Dashboard',
@@ -132,7 +130,7 @@ export default function page(
       toggleable: true,
       sortable: true,
       width: 200,
-      render: (data) => <Text fz="sm">{data.is_protected ? <IconCheck /> : <IconX />}</Text>,
+      render: (record) => <Text fz="sm">{record.is_protected ? <IconCheck /> : <IconX />}</Text>,
       filter: () => {
         return (
           <FilterRadio
@@ -200,7 +198,7 @@ export default function page(
       toggleable: false,
       sortable: false,
       width: 75,
-      render: (data) => {
+      render: (record) => {
         const menuItem = (
           <div>
             <TooltipIfTrue isTrue={!canEdit} label="You don't have permission to edit roles">
@@ -209,10 +207,10 @@ export default function page(
                 fz="sm"
                 color="blue"
                 variant="filled"
-                component={data.is_protected || !canEdit ? undefined : Link}
+                component={record.is_protected || !canEdit ? undefined : Link}
                 leftSection={<IconEdit size={16} />}
-                href={route(`${baseRoute}.edit`, { params: { id: data.id } }).path}
-                disabled={data.is_protected || !canEdit}
+                href={route(`${baseRoute}.edit`, { params: { id: record.id } }).path}
+                disabled={record.is_protected || !canEdit}
               >
                 Edit
               </Menu.Item>
@@ -227,11 +225,11 @@ export default function page(
                 leftSection={<IconTrash size={16} />}
                 onClick={() => {
                   if (!canDelete) return
-                  if (data.is_protected) return
-                  setSelected(() => data)
+                  if (record.is_protected) return
+                  setSelected(() => record)
                   onOpen()
                 }}
-                disabled={data.is_protected || !canDelete}
+                disabled={record.is_protected || !canDelete}
               >
                 Delete
               </Menu.Item>
@@ -249,7 +247,7 @@ export default function page(
             </Menu.Target>
             <Menu.Dropdown>
               {/* Delete is disabled if protected */}
-              {data.is_protected ? (
+              {record.is_protected ? (
                 <MantineTooltip label="*Protected item cannot be modified" withArrow>
                   {menuItem}
                 </MantineTooltip>
@@ -347,7 +345,7 @@ export default function page(
           </Group>
 
           <DataTable
-            minHeight={200}
+            minHeight={searchFilter.searchParamIsSet || searchFilter.isFetching ? 200 : undefined}
             verticalSpacing="xs"
             horizontalSpacing={'xs'}
             striped

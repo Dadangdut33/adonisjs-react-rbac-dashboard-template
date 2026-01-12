@@ -1,24 +1,27 @@
-import RoleController from '#controllers/role.controller'
+import UserController from '#controllers/user.controller'
 import { RouteNameType } from '#types/app'
+import { AuthUser } from '#types/models'
 
 import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
 import { Head, Link } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {
   ActionIcon,
-  Alert,
+  Avatar,
+  Badge,
   Button,
+  Flex,
   Group,
   Loader,
   Tooltip as MantineTooltip,
   Menu,
   Paper,
+  Stack,
   Text,
   TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
-  IconAlertCircle,
   IconCheck,
   IconDotsVertical,
   IconEdit,
@@ -35,22 +38,57 @@ import {
   DataTableSortStatus,
   useDataTableColumns,
 } from 'mantine-datatable'
-import { useState } from 'react'
+import React, { useState } from 'react'
+import { FilterBoolean } from '~/components/core/table-filter/boolean-filter'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
-import { FilterRadio } from '~/components/core/table-filter/radio-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
 import { TooltipIfTrue } from '~/components/core/tooltipper'
 import classes from '~/css/TableUtils.module.css'
 import { useDeleteGeneric } from '~/hooks/use_generic_delete'
 import useSearchFilter from '~/hooks/use_search_filter'
 import DashboardLayout from '~/layouts/dashboard'
-import { cn } from '~/lib/utils'
+import { cn, getInitials } from '~/lib/utils'
 
-const baseRoute = 'role'
-const basePerm = 'role'
-const pageTitle = 'Role'
-type PageProps = SharedProps & InferPageProps<RoleController, 'viewList'>
+const baseRoute = 'user'
+const basePerm = 'user'
+const pageTitle = 'User'
+type PageProps = SharedProps & InferPageProps<UserController, 'viewList'>
 type DataType = PageProps['data'][number]
+
+function mapRoleToBadgeComponent(role: string) {
+  let color = 'blue'
+
+  switch (role) {
+    case 'Admin':
+      color = 'green'
+      break
+    case 'Super Admin':
+      color = 'red'
+      break
+  }
+
+  return (
+    <Badge color={color} variant="filled" size="sm" radius="sm">
+      {role}
+    </Badge>
+  )
+}
+
+const disableBtnCheck = (current: AuthUser, target: DataType) => {
+  if (current.id === target.id) {
+    return true // Disable button if it's the current user
+  }
+
+  const targetUserIsAdmin = target.roles?.some(
+    (role) => role.name === 'Admin' || role.name === 'Super Admin'
+  )
+  const currentUserIsSuperAdmin = current.roles.some((role) => role === 'Super Admin')
+  if (targetUserIsAdmin && !currentUserIsSuperAdmin) {
+    return true // if target is admin or super admin, user must be super admin to perform action
+  }
+
+  return false
+}
 
 export default function page(props: PageProps) {
   const breadcrumbs = [
@@ -66,6 +104,7 @@ export default function page(props: PageProps) {
 
   // Data
   const { data, meta } = props
+  console.log(data)
 
   const canAdd = props.user?.permissions.includes(`${basePerm}.create`)
   const canEdit = props.user?.permissions.includes(`${basePerm}.update`)
@@ -99,53 +138,117 @@ export default function page(props: PageProps) {
       <div className="flex items-center gap-2">
         <Trash2 className="size-5 text-red-400" />
         <span>
-          Delete {pageTitle} ({selected?.name})
+          Delete {pageTitle} ({selected?.full_name})
         </span>
       </div>
     ),
   })
 
   // Columns
-  const key = 'role-table'
+  const key = 'user-table'
   const columns: DataTableProps<DataType>['columns'] = [
     {
-      accessor: 'name',
+      accessor: 'full_name',
       title: 'Name',
       sortable: true,
       filter: () => {
         return (
           <FilterText
-            column={'name'}
+            column={'full_name'}
             searchFilter={searchFilter}
-            label="Role Name"
-            description="Filter by role name"
+            label="Name"
+            description="Filter by user's name"
           />
         )
       },
-      filtering: searchFilter.searchBy.name ? true : false,
+      render(record) {
+        return (
+          <Flex gap="xs" align="center">
+            <Avatar
+              variant="filled"
+              radius="xl"
+              size="md"
+              src={record.profile?.avatarUrl}
+              alt={`${record.full_name}'s Avatar`}
+            >
+              {getInitials(record.full_name || 'Uknown')}
+            </Avatar>
+            <Stack gap={0}>
+              <Text fz="sm" fw={600}>
+                {record.full_name}
+              </Text>
+              <Text fz="xs">{record.email}</Text>
+            </Stack>
+          </Flex>
+        )
+      },
+      filtering: searchFilter.searchBy.full_name ? true : false,
     },
     {
-      accessor: 'is_protected',
-      title: 'Is Protected',
+      accessor: 'email',
+      title: 'Email',
       toggleable: true,
       sortable: true,
       width: 200,
-      render: (record) => <Text fz="sm">{record.is_protected ? <IconCheck /> : <IconX />}</Text>,
       filter: () => {
         return (
-          <FilterRadio
-            column={'is_protected'}
+          <FilterText
+            column={'email'}
             searchFilter={searchFilter}
-            label="Is Protected"
-            description="Only show protected roles"
-            data={[
-              { value: 'true', label: 'Yes' },
-              { value: 'false', label: 'No' },
-            ]}
+            label="Email"
+            description="Filter by user's email"
           />
         )
       },
-      filtering: searchFilter.searchBy.is_protected ? true : false,
+      filtering: searchFilter.searchBy.email ? true : false,
+    },
+    {
+      accessor: 'is_email_verified',
+      title: 'Email Verified',
+      toggleable: true,
+      sortable: true,
+      width: 210,
+      render: (record) => (
+        <Text fz="sm">{record.is_email_verified ? <IconCheck /> : <IconX />}</Text>
+      ),
+      filter: () => {
+        return (
+          <FilterBoolean
+            column={'is_email_verified'}
+            searchFilter={searchFilter}
+            label="Email Verified"
+            description="Filter by user's email verification status"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.is_email_verified ? true : false,
+    },
+    {
+      accessor: 'roles',
+      toggleable: true,
+      width: 150,
+      render(record) {
+        if (!record.roles || record.roles.length < 1) return <p>No Role Set</p>
+
+        return (
+          <Group gap="xs">
+            {record.roles.map((role) => (
+              <React.Fragment key={role.id}> {mapRoleToBadgeComponent(role.name)}</React.Fragment>
+            ))}
+          </Group>
+        )
+      },
+      filter: () => {
+        return (
+          <FilterText
+            column={'user.roles'}
+            searchFilter={searchFilter}
+            label="Roles"
+            description="Filter by user's roles"
+          />
+        )
+      },
+      filtering: searchFilter.searchBy.roles ? true : false,
     },
     {
       accessor: 'created_at',
@@ -201,29 +304,21 @@ export default function page(props: PageProps) {
       render: (record) => {
         const menuItem = (
           <div>
-            <TooltipIfTrue isTrue={!canEdit} label="You don't have permission to edit roles">
+            <TooltipIfTrue isTrue={!canEdit} label="You don't have permission to edit user">
               <Menu.Item
                 fw={600}
                 fz="sm"
                 color="blue"
                 variant="filled"
-                component={!canEdit ? undefined : Link}
+                component={Link}
                 leftSection={<IconEdit size={16} />}
                 href={route(`${baseRoute}.edit`, { params: { id: record.id } }).path}
-                disabled={!canEdit}
               >
                 Edit
               </Menu.Item>
             </TooltipIfTrue>
 
-            <TooltipIfTrue
-              isTrue={!canDelete || record.is_protected}
-              label={
-                record.is_protected
-                  ? 'Protected roles cannot be deleted'
-                  : "You don't have permission to delete roles"
-              }
-            >
+            <TooltipIfTrue isTrue={!canDelete} label="You don't have permission to delete user">
               <Menu.Item
                 fw={600}
                 fz="sm"
@@ -231,12 +326,9 @@ export default function page(props: PageProps) {
                 variant="filled"
                 leftSection={<IconTrash size={16} />}
                 onClick={() => {
-                  if (!canDelete) return
-                  if (record.is_protected) return
                   setSelected(() => record)
                   onOpen()
                 }}
-                disabled={record.is_protected || !canDelete}
               >
                 Delete
               </Menu.Item>
@@ -247,7 +339,11 @@ export default function page(props: PageProps) {
           <Menu withArrow width={150} shadow="md">
             <Menu.Target>
               <div className="flex">
-                <ActionIcon className="mx-auto" variant="light">
+                <ActionIcon
+                  className="mx-auto"
+                  variant="light"
+                  disabled={disableBtnCheck(props.user!, record)}
+                >
                   <IconDotsVertical size={16} />
                 </ActionIcon>
               </div>
@@ -280,16 +376,6 @@ export default function page(props: PageProps) {
             </Button>
           </TooltipIfTrue>
         </Group>
-
-        <Alert
-          title="About Protected Roles"
-          color="red"
-          radius="md"
-          mt="md"
-          icon={<IconAlertCircle />}
-        >
-          If you want to set / unset a role as protected, you must edit it manually in the DB.
-        </Alert>
 
         <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>
           <Group justify="space-between" mb="md">
@@ -352,7 +438,7 @@ export default function page(props: PageProps) {
             totalRecords={meta.total}
             recordsPerPage={meta.per_page}
             page={meta.current_page}
-            recordsPerPageOptions={[5, 10, 15, 20, 50, 100]}
+            recordsPerPageOptions={[5, 10, 15, 20, 50, 100, 200, 500, 1000]}
             onSelectedRecordsChange={setSelectedRecords}
             onPageChange={(page) => searchFilter.onPageChange(page)}
             onRecordsPerPageChange={(perPage) => searchFilter.onRecordsPerPage(perPage)}

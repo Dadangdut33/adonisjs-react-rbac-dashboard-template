@@ -5,6 +5,7 @@ import { router } from '@inertiajs/core'
 import { Head } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {
+  Alert,
   Button,
   Checkbox,
   Grid,
@@ -16,7 +17,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { IconArrowLeft, IconCancel, IconDeviceFloppy } from '@tabler/icons-react'
+import { IconAlertCircle, IconArrowLeft, IconCancel, IconDeviceFloppy } from '@tabler/icons-react'
 import { useModals } from '~/components/core/modal/modal-hooks'
 import { NotifyInfo } from '~/components/core/notify'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
@@ -49,6 +50,9 @@ export default function Page(
   ]
 
   const { ConfirmAddModal, ConfirmModal, ConfirmResetModal } = useModals()
+  // special check. For super admin role
+  const isEditingSuperAdminRole = data?.name === 'Super Admin'
+  const criticalPermissionPrefixes = ['role', 'permission', 'user']
 
   const form = useForm({
     initialValues: {
@@ -136,6 +140,18 @@ export default function Page(
           </Group>
         </Group>
 
+        {isEditingSuperAdminRole && (
+          <Alert icon={<IconAlertCircle />} title="Notice" color="yellow">
+            Some critical permissions are required for Super Admin role and cannot be modified.
+          </Alert>
+        )}
+
+        {data?.is_protected && (
+          <Alert icon={<IconAlertCircle />} title="Notice" color="blue">
+            Protected data cannot have its name changed.
+          </Alert>
+        )}
+
         <Grid gutter={{ base: 'lg', lg: 'xl' }}>
           <Grid.Col span={{ base: 12 }}>
             <Paper p="md" shadow="md" radius="md" withBorder>
@@ -146,7 +162,7 @@ export default function Page(
                   placeholder="Name..."
                   value={form.values.name}
                   error={form.errors.name}
-                  disabled={mutation.isPending}
+                  disabled={mutation.isPending || data?.is_protected}
                   onChange={(e) => form.setFieldValue('name', e.target.value)}
                 />
 
@@ -156,26 +172,41 @@ export default function Page(
                     <Paper p="md" shadow="md" radius="md" withBorder key={i}>
                       <Stack gap={'xs'}>
                         <Text>{permission}</Text>
-                        {permissions[permission].map((perm: { id: number; name: string }, j) => (
-                          <Checkbox
-                            key={j}
-                            label={perm.name}
-                            checked={form.values.permissionIds?.includes(perm.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                form.setFieldValue('permissionIds', [
-                                  ...form.values.permissionIds!,
-                                  perm.id,
-                                ])
-                              } else {
-                                form.setFieldValue(
-                                  'permissionIds',
-                                  form.values.permissionIds?.filter((id) => id !== perm.id)
-                                )
+                        {permissions[permission].map((perm: { id: number; name: string }, j) => {
+                          const isCriticalPermission = criticalPermissionPrefixes.some((prefix) =>
+                            perm.name.toLowerCase().startsWith(prefix)
+                          )
+                          return (
+                            <Checkbox
+                              key={j}
+                              label={perm.name}
+                              checked={
+                                // force true if editing super admin and is critical permission
+                                isEditingSuperAdminRole && isCriticalPermission
+                                  ? true
+                                  : form.values.permissionIds?.includes(perm.id)
                               }
-                            }}
-                          />
-                        ))}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  form.setFieldValue('permissionIds', [
+                                    ...form.values.permissionIds!,
+                                    perm.id,
+                                  ])
+                                } else {
+                                  form.setFieldValue(
+                                    'permissionIds',
+                                    form.values.permissionIds?.filter((id) => id !== perm.id)
+                                  )
+                                }
+                              }}
+                              disabled={
+                                mutation.isPending ||
+                                // we must make sure that super admin have access to these critical permissions
+                                (isEditingSuperAdminRole && isCriticalPermission)
+                              }
+                            />
+                          )
+                        })}
                       </Stack>
                     </Paper>
                   ))}

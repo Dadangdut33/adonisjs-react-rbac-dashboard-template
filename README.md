@@ -13,7 +13,7 @@ This template is currently made using adonisjs/core v6.x.
 - ReactJS with InertiaJS
 - TailwindCSS
 - Mantine UI
-- Mantine React Table
+- Mantine DataTable
 - TypeScript
 
 ## Features
@@ -34,6 +34,22 @@ This template is currently made using adonisjs/core v6.x.
 ## Drive System
 
 It is very recommended to use `s3` as the drive system. You can deploy for example, your own S3 compatible storage using [RustFS](https://github.com/rustfs/rustfs) or you can use provider like cloudflare R2 that give you free storage with generous limits.
+
+## About the Roles
+
+There are 3 default roles in this application:
+
+1. Super Admin
+
+   Has all access and permissions
+
+2. Admin
+
+   Has all access except for managing roles and permissions
+
+3. User
+
+   Has limited access to the application
 
 ## Things to Notes
 

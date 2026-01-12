@@ -16,6 +16,7 @@ import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
 import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
+const maxWidth = 'max-w-md'
 export default function Page(props: SharedProps & InferPageProps<AuthController, 'viewLogin'>) {
   const form = useForm({
     initialValues: {
@@ -44,7 +45,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout alertClassName={cn(maxWidth, 'mx-auto px-1')}>
       <Head>
         <title>Login</title>
       </Head>
@@ -60,7 +61,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
         </Button>
       </Box>
 
-      <div className={cn('flex flex-col gap-4 max-w-md mx-auto')}>
+      <div className={cn('flex flex-col gap-4', maxWidth, 'mx-auto')}>
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Welcome</CardTitle>

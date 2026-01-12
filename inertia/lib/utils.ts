@@ -83,12 +83,9 @@ export function limitString(str: string, limit: number) {
 
 export function getInitials(name: string) {
   const [firstName, lastName] = name.split(' ')
-  if (!firstName && !lastName) {
-    return ''
-  }
 
-  const firstInitial = firstName.charAt(0)
-  const lastInitial = lastName.charAt(0)
+  const firstInitial = firstName ? firstName.charAt(0) : ''
+  const lastInitial = lastName ? lastName.charAt(0) : ''
 
   if (firstInitial && lastInitial) {
     return `${firstInitial}${lastInitial}`

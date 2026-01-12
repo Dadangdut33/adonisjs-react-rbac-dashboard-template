@@ -9,7 +9,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.string('name', 50).notNullable()
+      table.string('name', 255).notNullable().unique()
       table.boolean('is_protected').notNullable().defaultTo(false)
 
       table.timestamp('created_at')

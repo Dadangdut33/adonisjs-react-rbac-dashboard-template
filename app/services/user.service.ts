@@ -10,11 +10,16 @@ export default class UserService {
   constructor(protected repo: UserRepository) {}
 
   async index(queryParams: QueryBuilderParams<typeof User>) {
-    return await this.repo.query(queryParams)
+    const q = this.repo.query({ ...queryParams, preload: ['roles', 'profile'] })
+    return await this.repo.paginate(q, queryParams)
   }
 
   async findById(id: string) {
     return await this.repo.findById(id)
+  }
+
+  async findOrFail(id: string) {
+    return await this.repo.findOrFail(id)
   }
 
   async createUpdate(data: UserPayload) {

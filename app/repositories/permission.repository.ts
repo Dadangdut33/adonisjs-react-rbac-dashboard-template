@@ -14,6 +14,11 @@ export default class PermissionRepository extends BaseRepository<typeof Permissi
     return this.updateGeneric(permission, data)
   }
 
+  async getCriticalPermissions() {
+    const toSearchNamePrefixes = ['role', 'permission', 'user']
+    return this.model.query().whereIn('name', toSearchNamePrefixes)
+  }
+
   async getListIdNames() {
     return this.model.query().select('id', 'name')
   }

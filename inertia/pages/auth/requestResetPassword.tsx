@@ -20,6 +20,7 @@ import AuthLayout from '~/layouts/auth'
 import { TIMEOUT_NORMAL } from '~/lib/constants'
 import { checkFormWithCaptcha, cn } from '~/lib/utils'
 
+const maxWidth = 'max-w-md'
 export default function Page(
   props: SharedProps & InferPageProps<AuthController, 'viewRequestResetPassword'>
 ) {
@@ -111,7 +112,7 @@ export default function Page(
   })
 
   return (
-    <AuthLayout>
+    <AuthLayout alertClassName={cn(maxWidth, 'mx-auto px-1')}>
       <Head>
         <title>Request Password Reset</title>
       </Head>
@@ -128,7 +129,7 @@ export default function Page(
         </Button>
       </Box>
 
-      <div className={cn('flex flex-col gap-4 max-w-md mx-auto')}>
+      <div className={cn('flex flex-col gap-4', maxWidth, 'mx-auto')}>
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Request Password Reset</CardTitle>

@@ -17,6 +17,14 @@ export default class UserPolicy extends CustomBasePolicy {
     return await this.perm.check(user, `${this.base}.view`)
   }
 
+  async viewCreate(user: User) {
+    return await this.perm.check(user, `${this.base}.create`)
+  }
+
+  async viewEdit(user: User) {
+    return await this.perm.check(user, `${this.base}.edit`)
+  }
+
   async create(user: User, payload: UserPayload, request: HttpContext['request']) {
     // first check if they have permission for the route or not
     if (await this.perm.checkInMethod(user, `${this.base}.create`, request, 'POST')) return false

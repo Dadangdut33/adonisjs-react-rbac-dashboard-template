@@ -258,11 +258,17 @@ export default function page(props: PageProps) {
       },
     },
   ]
-  const { effectiveColumns, resetColumnsToggle } = useDataTableColumns({
-    columns,
-    key,
-  })
+  const { effectiveColumns, resetColumnsToggle, resetColumnsWidth, resetColumnsOrder } =
+    useDataTableColumns({
+      columns,
+      key,
+    })
   const thereIsHiddenColumn = effectiveColumns.some((col) => col.hidden)
+  const resetColumnState = () => {
+    resetColumnsToggle()
+    resetColumnsWidth()
+    resetColumnsOrder()
+  }
 
   return (
     <DashboardLayout breadcrumbs={breadcrumbs}>
@@ -327,7 +333,7 @@ export default function page(props: PageProps) {
                   variant="outline"
                   color="gray"
                   size={'lg'}
-                  onClick={resetColumnsToggle}
+                  onClick={resetColumnState}
                   disabled={!thereIsHiddenColumn}
                 >
                   <ListRestart />

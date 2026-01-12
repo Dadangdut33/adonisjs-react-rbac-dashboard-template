@@ -224,9 +224,12 @@ export default function page(props: PageProps) {
       filtering: searchFilter.searchBy.is_email_verified ? true : false,
     },
     {
-      accessor: 'roles',
+      accessor: 'roles.name',
       toggleable: true,
-      width: 150,
+      sortable: true,
+      // sortKey: 'roles.name', // sortkey does not work idk so we use the accessor
+      title: 'Roles',
+      width: 160,
       render(record) {
         if (!record.roles || record.roles.length < 1) return <p>No Role Set</p>
 
@@ -241,7 +244,7 @@ export default function page(props: PageProps) {
       filter: () => {
         return (
           <FilterText
-            column={'user.roles'}
+            column={'roles.name'}
             searchFilter={searchFilter}
             label="Roles"
             description="Filter by user's roles"
@@ -354,11 +357,17 @@ export default function page(props: PageProps) {
       },
     },
   ]
-  const { effectiveColumns, resetColumnsToggle } = useDataTableColumns({
-    columns,
-    key,
-  })
+  const { effectiveColumns, resetColumnsToggle, resetColumnsWidth, resetColumnsOrder } =
+    useDataTableColumns({
+      columns,
+      key,
+    })
   const thereIsHiddenColumn = effectiveColumns.some((col) => col.hidden)
+  const resetColumnState = () => {
+    resetColumnsToggle()
+    resetColumnsWidth()
+    resetColumnsOrder()
+  }
 
   return (
     <DashboardLayout breadcrumbs={breadcrumbs}>
@@ -408,12 +417,12 @@ export default function page(props: PageProps) {
                 </MantineTooltip>
               </Group>
 
-              <MantineTooltip label="Reset columns toggle state" withArrow>
+              <MantineTooltip label="Reset columns state" withArrow>
                 <ActionIcon
                   variant="outline"
                   color="gray"
                   size={'lg'}
-                  onClick={resetColumnsToggle}
+                  onClick={resetColumnState}
                   disabled={!thereIsHiddenColumn}
                 >
                   <ListRestart />

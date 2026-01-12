@@ -10,7 +10,13 @@ export default class UserService {
   constructor(protected repo: UserRepository) {}
 
   async index(queryParams: QueryBuilderParams<typeof User>) {
-    const q = this.repo.query({ ...queryParams, preload: ['roles', 'profile'] })
+    const q = this.repo.query({
+      ...queryParams,
+      preload: ['roles', 'profile'],
+      searchRelations: [{ relation: 'roles', columns: ['name'] }],
+      sortableRelations: [{ relation: 'roles', column: 'name', aggregate: 'min' }],
+    })
+
     return await this.repo.paginate(q, queryParams)
   }
 

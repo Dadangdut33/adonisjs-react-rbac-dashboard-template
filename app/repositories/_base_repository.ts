@@ -34,6 +34,56 @@ export default abstract class BaseRepository<T extends LucidModel> {
     }
   }
 
+  private applyRelationSort(
+    query: any,
+    sortBy: string,
+    sortDirection: 'asc' | 'desc',
+    sortableRelations: QueryBuilderParams<T>['sortableRelations']
+  ) {
+    const parsed = parseRelationColumn(sortBy)
+    if (!parsed || !sortableRelations) return false
+
+    const rule = sortableRelations.find(
+      (r) => r.relation === parsed.relation && r.column === parsed.column
+    )
+    if (!rule) return false
+
+    const aggregate = rule.aggregate ?? 'min'
+    const direction = sortDirection ?? 'asc'
+
+    /**
+     * NOTE:
+     * This assumes conventional pivot naming:
+     * users, roles, user_roles
+     */
+    const modelTable = this.model.table
+    const relation = this.model.$getRelation(parsed.relation as any)
+
+    if (relation.type !== 'manyToMany') return false
+
+    const pivotTable = relation.pivotTable
+    const relatedTable = relation.relatedModel().table
+    const localKey = relation.localKey
+    const pivotForeignKey = relation.pivotForeignKey
+    const pivotRelatedForeignKey = relation.pivotRelatedForeignKey
+    const relatedKey = relation.relatedKey
+
+    query
+      .select(`${modelTable}.*`)
+      .leftJoin(pivotTable, `${modelTable}.${localKey}`, `${pivotTable}.${pivotForeignKey}`)
+      .leftJoin(
+        relatedTable,
+        `${relatedTable}.${relatedKey}`,
+        `${pivotTable}.${pivotRelatedForeignKey}`
+      )
+      .groupBy(`${modelTable}.${localKey}`)
+      .orderByRaw(
+        `${aggregate.toUpperCase()}(${relatedTable}.${parsed.column}) ${direction.toUpperCase()}`
+      )
+
+    return true
+  }
+
   public query(params: QueryBuilderParams<T>) {
     const {
       search = '',
@@ -146,9 +196,22 @@ export default abstract class BaseRepository<T extends LucidModel> {
      * Sorting
      */
     if (sortBy) {
-      // first check if sortable columns are defined | if not whitelisted, skip / prevent from being sortable
-      if (sortableCol && sortableCol.length > 0 && !sortableCol.includes(sortBy))
+      // relation sorting
+      const handled = this.applyRelationSort(
+        query,
+        sortBy,
+        sortDirection || 'asc',
+        params.sortableRelations
+      )
+
+      console.log('handled', handled)
+
+      if (handled) return query
+
+      // column whitelist
+      if (sortableCol?.length && !sortableCol.includes(sortBy)) {
         return query.orderBy('updated_at', 'desc')
+      }
 
       query.orderBy(sortBy, sortDirection || 'asc')
     } else {

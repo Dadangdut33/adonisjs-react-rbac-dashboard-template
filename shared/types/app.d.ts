@@ -26,6 +26,16 @@ export interface QueryBuilderParams<T extends LucidModel> {
 
   // backend-defined whitelist | if defined only these columns are sortable
   sortableCol?: string[]
+
+  sortableRelations?: {
+    relation: ExtractModelRelations<InstanceType<T>>
+    column: string
+    /**
+     * How to resolve multiple rows (many-to-many)
+     * default: MIN
+     */
+    aggregate?: 'min' | 'max'
+  }[]
 }
 
 export type ValidationError = {

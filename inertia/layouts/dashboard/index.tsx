@@ -72,7 +72,7 @@ export default function DashboardLayout({
             {withSeparator && <Separator className="mt-1 mb-2" />}
           </div>
         </header>
-        <div className={cn('flex flex-1 flex-col px-4 pt-0', className)}>{children}</div>
+        <div className={cn('flex flex-1 flex-col px-4 pt-0 pb-4', className)}>{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

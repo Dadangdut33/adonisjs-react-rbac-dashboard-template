@@ -13,6 +13,8 @@ export default class UserService {
     const q = this.repo.query({
       ...queryParams,
       preload: ['roles', 'profile'],
+      exclude: ['password'],
+      excludePreload: ['profile.bio'],
       searchRelations: [{ relation: 'roles', columns: ['name'] }],
       sortableRelations: [{ relation: 'roles', column: 'name', aggregate: 'min' }],
     })

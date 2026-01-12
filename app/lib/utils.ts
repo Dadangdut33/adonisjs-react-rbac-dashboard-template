@@ -34,6 +34,20 @@ export function parseRelationColumn(key: string) {
   return null
 }
 
+export function parseSelectPreload(items: string[] = []) {
+  const map: Record<string, string[]> = {}
+
+  for (const item of items) {
+    const [path, cols] = item.split(':')
+    if (!cols) continue
+
+    const [relation] = path.split('.')
+    map[relation] = cols.split(',').map((c) => c.trim())
+  }
+
+  return map
+}
+
 export function getMethodActName(request: HttpContext['request']) {
   const method = request.method()
   switch (method) {

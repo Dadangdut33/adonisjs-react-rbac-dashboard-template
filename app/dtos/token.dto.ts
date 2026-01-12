@@ -14,7 +14,7 @@ export class TokenDto {
     this.type = token.type
     this.token = token.token
     this.expires_at = token.expires_at ? token.expires_at.toString() : null
-    this.created_at = token.created_at.toString()
+    this.created_at = token.created_at ? token.created_at.toString() : ''
     this.updated_at = token.updated_at ? token.updated_at.toString() : ''
   }
 

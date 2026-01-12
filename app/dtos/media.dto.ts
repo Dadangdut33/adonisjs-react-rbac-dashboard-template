@@ -20,7 +20,7 @@ export class MediaDto {
     this.extension = media.extension
     this.size = media.size
     this.hash = media.hash
-    this.created_at = media.created_at.toString()
+    this.created_at = media.created_at ? media.created_at.toString() : ''
     this.updated_at = media.updated_at ? media.updated_at.toString() : ''
     this.loadUrl(media.url)
   }

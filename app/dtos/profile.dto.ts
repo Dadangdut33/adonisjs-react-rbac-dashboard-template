@@ -19,7 +19,7 @@ export class ProfileDto {
     this.user_id = profile.user_id
     this.avatar = profile.avatar ? new MediaDto(profile.avatar) : undefined
     this.avatarUrl = profile.avatarUrl
-    this.created_at = profile.created_at.toString()
+    this.created_at = profile.created_at ? profile.created_at.toString() : ''
     this.updated_at = profile.updated_at ? profile.updated_at.toString() : ''
   }
 

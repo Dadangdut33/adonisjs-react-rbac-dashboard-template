@@ -1,4 +1,4 @@
-import { parseRelationColumn } from '#lib/utils'
+import { parseRelationColumn, parseSelectPreload } from '#lib/utils'
 import { QueryBuilderParams } from '#types/app'
 
 import {
@@ -16,7 +16,12 @@ export default abstract class BaseRepository<T extends LucidModel> {
     this.model = model
   }
 
-  private preloadQuery(query: ModelQueryBuilderContract<T>, preload: string[]) {
+  private preloadQuery(
+    query: ModelQueryBuilderContract<T>,
+    preload: string[],
+    excludePreload: string[] = [],
+    selectPreload: string[] = []
+  ) {
     const relations: Record<string, string[]> = {}
 
     preload.forEach((item) => {
@@ -25,17 +30,52 @@ export default abstract class BaseRepository<T extends LucidModel> {
       if (rest.length) relations[relation].push(rest.join('.'))
     })
 
+    const excludeMap: Record<string, string[]> = {}
+    excludePreload.forEach((item) => {
+      const [relation, ...rest] = item.split('.')
+      if (!excludeMap[relation]) excludeMap[relation] = []
+      if (rest.length) excludeMap[relation].push(rest.join('.'))
+    })
+
+    const selectMap = parseSelectPreload(selectPreload)
+
     for (const relation in relations) {
-      query.preload(relation as any, (subQuery: any) => {
+      query.preload(relation as any, (subQuery) => {
+        const model = subQuery.model
+
+        const selectedCols = selectMap[relation]
+        const excludedCols = excludeMap[relation] ?? []
+
+        /**
+         * Priority:
+         * 1. selectPreload
+         * 2. excludePreload
+         * 3. defaultExclude (optional)
+         */
+        if (selectedCols?.length) {
+          subQuery.select(selectedCols)
+        } else if (excludedCols.length) {
+          const allColumns = Array.from(model.$columnsDefinitions.values()).map(
+            (c: any) => c.columnName
+          )
+
+          subQuery.select(allColumns.filter((c: string) => !excludedCols.includes(c)))
+        }
+
         if (relations[relation].length > 0) {
-          this.preloadQuery(subQuery, relations[relation])
+          this.preloadQuery(
+            subQuery,
+            relations[relation],
+            excludeMap[relation] ?? [],
+            selectPreload
+          )
         }
       })
     }
   }
 
   private applyRelationSort(
-    query: any,
+    query: ModelQueryBuilderContract<T>,
     sortBy: string,
     sortDirection: 'asc' | 'desc',
     sortableRelations: QueryBuilderParams<T>['sortableRelations']
@@ -95,12 +135,33 @@ export default abstract class BaseRepository<T extends LucidModel> {
       searchRelations = [],
       searchableCol,
       sortableCol,
+      selectPreload,
+      excludePreload,
     } = params
     // Create the base query
     const query = this.model.query()
 
+    /**
+     * Column selection (select / exclude)
+     */
+    const allColumnsName = Array.from(this.model.$columnsDefinitions.values()).map(
+      (c) => c.columnName
+    )
+
+    // Prefer select over exclude
+    if (params.select && params.select.length > 0) {
+      query.select(params.select as string[])
+    } else if (params.exclude && params.exclude.length > 0) {
+      const excluded = new Set(params.exclude as string[])
+      const selected = allColumnsName.filter((col) => !excluded.has(col))
+
+      query.select(selected)
+    }
+
     // Preload relations
-    if (preload.length > 0) this.preloadQuery(query, preload)
+    if (preload.length > 0) {
+      this.preloadQuery(query, preload, excludePreload, selectPreload)
+    }
 
     // Apply filters
     if (Object.keys(filters).length > 0) query.where(filters)

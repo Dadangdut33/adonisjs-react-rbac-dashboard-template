@@ -11,8 +11,8 @@ export class PermissionDto {
     this.id = permission.id
     this.name = permission.name
     this.is_protected = permission.is_protected
-    this.created_at = permission.created_at.toString()
-    this.updated_at = permission.updated_at.toString()
+    this.created_at = permission.created_at ? permission.created_at.toString() : ''
+    this.updated_at = permission.updated_at ? permission.updated_at.toString() : ''
   }
 
   // Collect is for multiple dtos

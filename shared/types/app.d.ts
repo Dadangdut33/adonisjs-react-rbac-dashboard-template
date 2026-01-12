@@ -36,6 +36,12 @@ export interface QueryBuilderParams<T extends LucidModel> {
      */
     aggregate?: 'min' | 'max'
   }[]
+
+  select?: (keyof ModelAttributes<InstanceType<T>>)[]
+  exclude?: (keyof ModelAttributes<InstanceType<T>>)[] // only work for current table
+
+  selectPreload?: string[] // e.g. ['profile:id,user_id,avatar_id', 'profile.avatar:id,url']
+  excludePreload?: string[] // e.g. ['profile.bio', 'profile.avatar.metadata']
 }
 
 export type ValidationError = {

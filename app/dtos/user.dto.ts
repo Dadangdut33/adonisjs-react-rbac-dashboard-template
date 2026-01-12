@@ -22,7 +22,7 @@ export class UserDto {
     this.full_name = user.full_name
     this.email = user.email
     this.is_email_verified = user.is_email_verified
-    this.created_at = user.created_at.toString()
+    this.created_at = user.created_at ? user.created_at.toString() : ''
     this.updated_at = user.updated_at ? user.updated_at.toString() : ''
     this.roles = user.roles ? RoleDto.collect(user.roles) : undefined
     this.profile = user.profile ? new ProfileDto(user.profile) : undefined

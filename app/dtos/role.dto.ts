@@ -15,8 +15,8 @@ export class RoleDto {
     this.id = role.id
     this.name = role.name
     this.is_protected = role.is_protected
-    this.created_at = role.created_at.toString()
-    this.updated_at = role.updated_at.toString()
+    this.created_at = role.created_at ? role.created_at.toString() : ''
+    this.updated_at = role.updated_at ? role.updated_at.toString() : ''
     this.permissions = role.permissions
       ? role.permissions.map((perm) => new PermissionDto(perm))
       : []

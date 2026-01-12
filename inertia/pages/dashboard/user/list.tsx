@@ -104,7 +104,6 @@ export default function page(props: PageProps) {
 
   // Data
   const { data, meta } = props
-  console.log(data)
 
   const canAdd = props.user?.permissions.includes(`${basePerm}.create`)
   const canEdit = props.user?.permissions.includes(`${basePerm}.update`)

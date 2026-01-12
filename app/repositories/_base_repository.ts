@@ -90,7 +90,7 @@ export default abstract class BaseRepository<T extends LucidModel> {
       searchBy = {},
       sortBy,
       sortDirection,
-      preload = [], // example: ['roles', 'profile', 'profile.avatar']
+      preload = [], // example: ['roles', 'profile.avatar']
       filters = {},
       searchRelations = [],
       searchableCol,

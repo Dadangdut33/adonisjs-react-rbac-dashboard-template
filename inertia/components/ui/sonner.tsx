@@ -1,5 +1,6 @@
 'use client'
 
+import { useMantineColorScheme } from '@mantine/core'
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -7,15 +8,15 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = 'system' } = useTheme()
+  const { colorScheme } = useMantineColorScheme()
+  let convertedColor = colorScheme === 'auto' ? 'system' : colorScheme
 
   return (
     <Sonner
-      theme={theme as ToasterProps['theme']}
+      theme={convertedColor as ToasterProps['theme']}
       className="toaster group whitespace-pre-wrap"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

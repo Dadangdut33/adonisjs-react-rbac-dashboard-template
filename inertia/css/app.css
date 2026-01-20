@@ -277,6 +277,20 @@
 
 @layer mantine, mantine-datatable;
 
+/* Critical for flex layouts */
+main,
+.mantine-AppShell-main,
+.mantine-Container-root {
+  min-width: 0;
+}
+
+/* Box sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* ------------------------------------------- */
 /* custom */
 /* ------------------------------------------- */

@@ -44,6 +44,15 @@ This template is currently made using adonisjs/core v6.x.
 - Role system (manage roles, assign permissions to roles)
 - Activity log (track changes like create, update, delete, etc)
 
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies with `pnpm install`
+3. Configure the environment variables as defined in `.env.example`
+4. Run migration with `node ace migration:run`
+5. Run the development server with `pnpm dev`
+6. For production / deployment, check out [adonisjs official docs](https://docs.adonisjs.com/guides/getting-started/deployment)
+
 ## Drive System
 
 It is very recommended to use `s3` as the drive system. You can deploy for example, your own S3 compatible storage using [RustFS](https://github.com/rustfs/rustfs) or you can use provider like cloudflare R2 that give you free storage with generous limits.

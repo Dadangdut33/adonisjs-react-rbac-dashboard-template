@@ -30,6 +30,7 @@ This template is currently made using adonisjs/core v6.x.
 - Media system (see all uploaded media, view media metadata, delete media)
 - Permission system (manage permissions to access different parts of the application)
 - Role system (manage roles, assign permissions to roles)
+- Activity log (track changes like create, update, delete, etc)
 
 ## Drive System
 
@@ -76,15 +77,16 @@ For most stuff related to filenames, functions, variables, etc, its already defi
 2. Middleware is stored in `app/middleware` folder. Read more about middleware in the [AdonisJS docs](https://adonisjs.com/docs/middleware). Please note that we check for permission in controllers, not in the middleware because i dont think adonisJS middleware is capable of doing that. But we make it as simple as possible. Example: \
 
 ```tsx
+// We use .authorize and changes are made to the exceptions/handler to make it work just like when we use .denies
 async viewCreate({ bouncer, inertia }: HttpContext) {
-  if (await bouncer.with('xxxpolicy').denies('viewCreate')) return throwForbidden()
+   await bouncer.with('xxxpolicy').authorize('viewCreate')
   // rest of the code...
 }
 
 async create({ bouncer, request, response }: HttpContext) {
   try {
     const payload = await request.validateUsing(createEditUserValidator)
-    if (await bouncer.with('xxxpolicy').denies('create', payload, request)) return throwForbidden()
+    await bouncer.with('RolePolicy').authorize('create', payload, request)
 
     await this.service.create(payload)
 
@@ -101,10 +103,10 @@ async create({ bouncer, request, response }: HttpContext) {
 }
 ```
 
-3. For validators its stored in `app/validators` folder. We then define the `inferred` type in `shared/types/inferred.d.ts` file. We can then import it in backend apps or in the frontend inertia pages.
-4. For the database table name, column name, etc, we configured it to be in snake_case. You can see for example in [user.ts](app/models/user.ts) we define `static namingStrategy = new SnakeCaseNamingStrategy()`. You can modify this for yourself easily in the [`_naming_strategy.ts`](app/models/_naming_strategy.ts) file located in the models folder if you want to, but i recommend to do it like this for less confusion. So the correct example is that lets say we have`created_at` column defined in `users` table, then when we acces it it shold also be `user.created_at` and it is the same when inputting data to the database.
-5. For the entrypoint of the frontend, its in `inertia/app/app.tsx` and `inertia/app/ssr.tsx`. You can read more about these in the [inertia docs](https://inertiajs.com/server-side-rendering).
-6. For the frontend:
+1. For validators its stored in `app/validators` folder. We then define the `inferred` type in `shared/types/inferred.d.ts` file. We can then import it in backend apps or in the frontend inertia pages.
+2. For the database table name, column name, etc, we configured it to be in snake_case. You can see for example in [user.ts](app/models/user.ts) we define `static namingStrategy = new SnakeCaseNamingStrategy()`. You can modify this for yourself easily in the [`_naming_strategy.ts`](app/models/_naming_strategy.ts) file located in the models folder if you want to, but i recommend to do it like this for less confusion. So the correct example is that lets say we have`created_at` column defined in `users` table, then when we acces it it shold also be `user.created_at` and it is the same when inputting data to the database.
+3. For the entrypoint of the frontend, its in `inertia/app/app.tsx` and `inertia/app/ssr.tsx`. You can read more about these in the [inertia docs](https://inertiajs.com/server-side-rendering).
+4. For the frontend:
 
    a. We store the inertia pages in `inertia/pages` (you can adjust this according to how you call the pages in the controllers in backend)
 

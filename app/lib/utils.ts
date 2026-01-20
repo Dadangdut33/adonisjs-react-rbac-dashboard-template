@@ -4,6 +4,7 @@ import { Exception } from '@adonisjs/core/exceptions'
 import { HttpContext } from '@adonisjs/core/http'
 import logger from '@adonisjs/core/services/logger'
 import { randomInt, randomUUID } from 'node:crypto'
+import { IncomingHttpHeaders } from 'node:http'
 
 export function generateRandomPassword(length: number = 24): string {
   const lowercase = 'abcdefghijklmnopqrstuvwxyz'
@@ -170,12 +171,12 @@ export function returnError(
 
     // only log if it is really an unexpected error
     if (!ifTheseCodesSkip.includes(error.code))
-      logger.error(error, errorIdentifier + unique_error_id)
+      logger.error(error, errorIdentifier + ' ' + unique_error_id)
   }
 
   if (logValidation && error.code === 'E_VALIDATION_ERROR') {
     if (!unique_error_id) unique_error_id = randomUUID()
-    logger.error(error, errorIdentifier + unique_error_id)
+    logger.error(error, errorIdentifier + ' ' + unique_error_id)
   }
 
   return response.status(error.status || 500).json({
@@ -210,4 +211,42 @@ export function throwNotFound(message = 'Page not found') {
   throw new Exception(message, {
     status: 404,
   })
+}
+
+export type RequestFingerprint = {
+  ip: string
+  userAgent: string
+  referer: string
+  origin: string
+  language: string
+  url: string
+  method: string
+  headers: {
+    platform: string | string[]
+    browser: string | string[]
+    mobile: string | string[]
+    language: string
+  }
+}
+
+const getSomeHeaders = (header: IncomingHttpHeaders) => {
+  return {
+    platform: header['sec-ch-ua-platform'] || '',
+    browser: header['sec-ch-ua'] || '',
+    mobile: header['sec-ch-ua-mobile'] || '',
+    language: header['accept-language'] || '',
+  }
+}
+
+export function getRequestFingerprint(request: HttpContext['request']): RequestFingerprint {
+  return {
+    ip: request.ip(),
+    userAgent: request.header('user-agent') || '',
+    referer: request.header('referer') || '',
+    origin: request.header('origin') || '',
+    language: request.header('accept-language') || '',
+    url: request.url(true),
+    method: request.method(),
+    headers: getSomeHeaders(request.headers()),
+  }
 }

@@ -1,5 +1,6 @@
 import { MediaDto } from '#dto/media.dto'
-import { mapRequestToQueryParams, returnError } from '#lib/utils'
+import { getRequestFingerprint, mapRequestToQueryParams, returnError } from '#lib/utils'
+import ActivityLogService from '#services/activity_log.service'
 import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
 import { PaginationMeta } from '#types/app'
@@ -13,7 +14,8 @@ import logger from '@adonisjs/core/services/logger'
 export default class MediaController {
   constructor(
     protected mediaSvc: MediaService,
-    protected permChecker: PermissionCheckService
+    protected permChecker: PermissionCheckService,
+    protected activityLogSvc: ActivityLogService
   ) {}
 
   async viewList({ request, bouncer, inertia }: HttpContext) {
@@ -28,12 +30,18 @@ export default class MediaController {
     })
   }
 
-  async destroy({ response, params, bouncer }: HttpContext) {
+  async destroy({ response, params, bouncer, auth, request }: HttpContext) {
     try {
       await bouncer.with('MediaPolicy').authorize('delete')
 
       const id = params.id
       await this.mediaSvc.delete(id)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'delete_media',
+        `Deleted media with id:\n\`\`\`\n${id}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       return response.status(200).json({
         status: 'success',
@@ -44,7 +52,7 @@ export default class MediaController {
     }
   }
 
-  async bulkDestroy({ response, request, bouncer }: HttpContext) {
+  async bulkDestroy({ response, request, bouncer, auth }: HttpContext) {
     try {
       await bouncer.with('MediaPolicy').authorize('delete')
 
@@ -52,6 +60,12 @@ export default class MediaController {
       if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
 
       await this.mediaSvc.deleteBulk(ids)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'bulk_delete_media',
+        `Deleted media ids:\n\`\`\`\n${ids.map((id) => `- ${id}`).join('\n')}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       return response.status(200).json({
         status: 'success',

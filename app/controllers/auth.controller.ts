@@ -1,4 +1,5 @@
-import { returnError, throwNotFound } from '#lib/utils'
+import { getRequestFingerprint, returnError, throwNotFound } from '#lib/utils'
+import ActivityLogService from '#services/activity_log.service'
 import AuthService from '#services/auth.service'
 import env from '#start/env'
 import {
@@ -29,7 +30,10 @@ export default class AuthController {
     hide_forgot_password: this.hideForgotPassword,
   }
 
-  constructor(protected service: AuthService) {}
+  constructor(
+    protected service: AuthService,
+    protected activityLogSvc: ActivityLogService
+  ) {}
 
   async viewLogin({ inertia }: HttpContext) {
     return inertia.render('auth/login', { ...this.baseProp })
@@ -107,6 +111,13 @@ export default class AuthController {
       session.flash(
         'success',
         'User registered successfully, please login and verify your email to continue'
+      )
+
+      await this.activityLogSvc.log(
+        user.id,
+        'register_user',
+        `Registered user:\n\`\`\`\n${user.email} [${user.id}]\n\`\`\``,
+        getRequestFingerprint(request)
       )
 
       return response.status(201).json({

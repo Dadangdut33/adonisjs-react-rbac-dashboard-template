@@ -1,23 +1,25 @@
-import Roles from '#enums/roles'
 import Role from '#models/role'
 
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 export default class extends BaseSeeder {
   async run() {
+    // Make sure this run first
+    // the id is important
+    // but we dont define the id here because it will mess with the auto increment
     const payload = [
       {
-        id: Roles.USER,
+        // id: Roles.USER,
         name: 'User',
         is_protected: true,
       },
       {
-        id: Roles.ADMIN,
+        // id: Roles.ADMIN,
         name: 'Admin',
         is_protected: true,
       },
       {
-        id: Roles.SUPER_ADMIN,
+        // id: Roles.SUPER_ADMIN,
         name: 'Super Admin',
         is_protected: true,
       },

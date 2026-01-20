@@ -26,6 +26,8 @@ export default await Env.create(new URL('../', import.meta.url), {
   ENABLE_FORGOT_PASSWORD: Env.schema.boolean.optional(),
   HIDE_FORGOT_PASSWORD: Env.schema.boolean.optional(),
 
+  ENABLE_ACTIVITY_LOG: Env.schema.boolean.optional(),
+
   /*
   |----------------------------------------------------------
   | Analytics

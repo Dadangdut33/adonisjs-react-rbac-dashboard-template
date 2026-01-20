@@ -33,7 +33,11 @@ export default class Media extends BaseModel {
   @column()
   declare hash: string
 
-  @column()
+  @column({
+    // prepare so that the string[] that we input get automatically stored as Json.stringify
+    prepare: (value: string[] | null) => JSON.stringify(value),
+    // dont need prepare because its alread read as string[]
+  })
   declare tags: string[] | null
 
   @column.dateTime({ autoCreate: true })

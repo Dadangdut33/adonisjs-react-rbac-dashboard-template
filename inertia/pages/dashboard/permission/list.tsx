@@ -407,7 +407,7 @@ export default function page(props: PageProps) {
             totalRecords={meta.total}
             recordsPerPage={meta.per_page}
             page={meta.current_page}
-            recordsPerPageOptions={[5, 10, 15, 20, 50, 100]}
+            recordsPerPageOptions={[5, 10, 15, 20, 50, 100, 200, 500, 1000]}
             onSelectedRecordsChange={(rec) => {
               const filtered = rec.filter((item) => !item.is_protected)
               setSelectedRecords(filtered)

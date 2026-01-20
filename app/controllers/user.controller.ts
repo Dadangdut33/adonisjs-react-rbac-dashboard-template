@@ -2,11 +2,13 @@ import { UserDto } from '#dto/user.dto'
 import {
   generateRandomPassword,
   getMethodActName,
+  getRequestFingerprint,
   mapRequestToQueryParams,
   returnError,
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
+import ActivityLogService from '#services/activity_log.service'
 import MediaService from '#services/media.service'
 import ProfileService from '#services/profile.service'
 import RoleService from '#services/role.service'
@@ -24,7 +26,8 @@ export default class UserController {
     protected userSvc: UserService,
     protected roleSvc: RoleService,
     protected mediaSvc: MediaService,
-    protected profileSvc: ProfileService
+    protected profileSvc: ProfileService,
+    protected activityLogSvc: ActivityLogService
   ) {}
 
   async viewCreate({ bouncer, inertia, auth }: HttpContext) {
@@ -71,18 +74,30 @@ export default class UserController {
 
   // if POST request -> create
   // if PATCH request -> update
-  async storeOrUpdate({ bouncer, request, response }: HttpContext) {
+  async storeOrUpdate({ bouncer, request, response, auth }: HttpContext) {
     try {
       const payload = await request.validateUsing(createEditUserValidator)
 
       if (request.method() === 'POST') {
         await bouncer.with('UserPolicy').authorize('create', payload, request)
 
-        await this.userSvc.create(payload)
+        const created = await this.userSvc.create(payload)
+        await this.activityLogSvc.log(
+          auth.user!.id,
+          'create_user',
+          `Created user:\n\`\`\`\n${created.email} [${created.id}]\n\`\`\``,
+          getRequestFingerprint(request)
+        )
       } else if (request.method() === 'PATCH') {
         await bouncer.with('UserPolicy').authorize('update', payload, request)
 
-        await this.userSvc.update(payload)
+        const updated = await this.userSvc.update(payload)
+        await this.activityLogSvc.log(
+          auth.user!.id,
+          'update_user',
+          `Updated user:\n\`\`\`\n${updated.email} [${updated.id}]\n\`\`\``,
+          getRequestFingerprint(request)
+        )
       } else {
         throwForbidden()
       }
@@ -97,7 +112,7 @@ export default class UserController {
     }
   }
 
-  async destroy({ response, params, bouncer }: HttpContext) {
+  async destroy({ response, params, bouncer, auth, request }: HttpContext) {
     try {
       if (await bouncer.with('UserPolicy').denies('delete')) return throwForbidden()
 
@@ -108,6 +123,12 @@ export default class UserController {
       const profile = user.profile
 
       await this.userSvc.deleteUser(id)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'delete_user',
+        `Deleted user:\n\`\`\`\n${user.email} [${user.id}]\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       if (profile.avatar_id) {
         await this.mediaSvc.delete(profile.avatar_id)
@@ -122,7 +143,7 @@ export default class UserController {
     }
   }
 
-  async bulkDestroy({ response, request, bouncer }: HttpContext) {
+  async bulkDestroy({ response, request, bouncer, auth }: HttpContext) {
     try {
       if (await bouncer.with('UserPolicy').denies('delete')) return throwForbidden()
 
@@ -130,8 +151,16 @@ export default class UserController {
       if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
 
       const users = await this.userSvc.findByIds(ids)
+      const emailsIds = users.map((u) => `- ${u.email} [${u.id}]`).join('\n')
 
       await this.userSvc.deleteUsers(ids)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'bulk_delete_user',
+        `Deleted users:\n\`\`\`\n${emailsIds}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
+
       for (const user of users) {
         if (user.profile.avatar_id) {
           await this.mediaSvc.delete(user.profile.avatar_id)

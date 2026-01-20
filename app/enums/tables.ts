@@ -11,6 +11,7 @@ enum Tables {
   TOKENS = 'tokens',
   ACCESS_TOKEN = 'auth_access_tokens',
   RATE_LIMITS = 'rate_limits',
+  ACTIVITY_LOGS = 'activity_logs',
 
   // content
   MEDIAS = 'medias',

@@ -543,3 +543,107 @@ main,
   outline: 0.5px solid var(--mantine-color-blue-3);
   transition: outline 0.2s ease-in-out;
 }
+
+/* -------------------------------- */
+/* Simple Markdown */
+/* -------------------------------- */
+.markdown {
+  line-height: 1.7;
+  font-size: 0.95rem;
+  color: #e5e7eb; /* slate-200 */
+}
+
+/* Headings */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  margin: 1.2em 0 0.6em;
+}
+
+.markdown h1 {
+  font-size: 1.5rem;
+}
+.markdown h2 {
+  font-size: 1.25rem;
+}
+.markdown h3 {
+  font-size: 1.1rem;
+}
+
+/* Paragraphs */
+.markdown p {
+  @apply text-sm;
+  margin: 0.5em 0;
+}
+
+/* Links */
+.markdown a {
+  color: #34d399; /* emerald-400 */
+  text-decoration: underline;
+}
+
+/* Lists */
+.markdown ul,
+.markdown ol {
+  padding-left: 1.5rem;
+  margin: 0.5em 0;
+}
+
+.markdown li {
+  margin: 0.25em 0;
+}
+
+/* INLINE CODE */
+.markdown code:not(pre code) {
+  background-color: #020617; /* slate-900 */
+  color: #34d399; /* emerald-400 */
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.85em;
+}
+
+/* BLOCK CODE */
+.markdown pre {
+  background-color: #020617; /* slate-900 */
+  border: 2px solid #10b981; /* emerald-500 */
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  max-height: 250px;
+  overflow: auto;
+  margin: 0.75rem 0;
+}
+
+.log-table.markdown pre {
+  @apply max-h-[150px] overflow-y-auto;
+}
+
+/* CODE INSIDE PRE */
+.markdown pre code {
+  color: #34d399; /* emerald-400 */
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.85rem;
+  background: none;
+  padding: 0;
+  word-break: break-all;
+}
+
+/* SCROLL CONTAINER (matches overflow-x-scroll) */
+.markdown pre {
+  overflow-x: auto;
+}
+
+/* BREAK LONG TOKENS (break-all equivalent) */
+.markdown pre code {
+  word-break: break-all;
+}
+
+/* Blockquotes */
+.markdown blockquote {
+  border-left: 4px solid #10b981;
+  padding-left: 1rem;
+  color: #9ca3af;
+  margin: 0.75em 0;
+}

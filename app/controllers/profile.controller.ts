@@ -1,5 +1,6 @@
-import { getMethodActName, returnError } from '#lib/utils'
+import { getMethodActName, getRequestFingerprint, returnError } from '#lib/utils'
 import Media from '#models/media'
+import ActivityLogService from '#services/activity_log.service'
 import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
 import ProfileService from '#services/profile.service'
@@ -15,7 +16,8 @@ export default class ProfileController {
   constructor(
     protected profileSvc: ProfileService,
     protected mediaSvc: MediaService,
-    protected permChecker: PermissionCheckService
+    protected permChecker: PermissionCheckService,
+    protected activityLogSvc: ActivityLogService
   ) {}
 
   async view({ bouncer, auth, inertia }: HttpContext) {
@@ -40,20 +42,26 @@ export default class ProfileController {
   async update({ bouncer, request, response, auth }: HttpContext) {
     try {
       const userId = auth.user?.id
-      const data = await request.validateUsing(updateProfileValidator)
+      const payload = await request.validateUsing(updateProfileValidator)
       await bouncer.with('ProfilePolicy').authorize('update', userId!, request)
 
       let media: Media | null = null
       const profile = await this.profileSvc.findByUid(userId!)
 
-      if (data.avatar)
-        media = await this.mediaSvc.replaceById(data.avatar, {
+      if (payload.avatar)
+        media = await this.mediaSvc.replaceById(payload.avatar, {
           id: profile?.avatar_id!,
           keyPrefix: userId!,
           tags: ['avatar'],
         })
 
-      await this.profileSvc.update(userId!, { ...data, avatar_id: media?.id })
+      await this.profileSvc.update(userId!, { ...payload, avatar_id: media?.id })
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'update_profile',
+        `Updated profile:\n\`\`\`\n${auth.user!.email} [${auth.user!.id}]\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       return response.status(200).json({
         status: 'success',

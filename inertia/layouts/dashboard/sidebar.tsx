@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronsUpDown,
   GalleryVerticalEnd,
+  History,
   Images,
   LayoutDashboard,
   LogOut,
@@ -233,6 +234,13 @@ const data = {
       icon: ShieldUser,
       flat: true,
       requiredPermission: 'permission.view',
+    },
+    {
+      title: 'Activity Log',
+      url: route('activity_log.index').path,
+      icon: History,
+      flat: true,
+      requiredPermission: 'activity_log.view',
     },
   ],
 }

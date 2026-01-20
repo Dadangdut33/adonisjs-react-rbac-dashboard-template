@@ -8,6 +8,7 @@ const UserController = () => import('#controllers/user.controller')
 const PermissionController = () => import('#controllers/permission.controller')
 const ProfileController = () => import('#controllers/profile.controller')
 const RoleController = () => import('#controllers/role.controller')
+const ActivityLogController = () => import('#controllers/activity_log.controller')
 const MediaController = () => import('#controllers/media.controller')
 
 type ControllerImport<T> = T | LazyImport<T>
@@ -48,6 +49,8 @@ router
     mapGenericRoutes('/permissions', PermissionController, 'permission', true)
     mapGenericRoutes('/roles', RoleController, 'role', true)
     mapGenericRoutes('/media', MediaController, 'media', true)
+
+    router.get('/activity-log', [ActivityLogController, 'viewList']).as('activity_log.index')
   })
   .use([middleware.auth(), middleware.verify_email()])
   .prefix('/dashboard')

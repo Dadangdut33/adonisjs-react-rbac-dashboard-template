@@ -1,11 +1,13 @@
 import { PermissionDto } from '#dto/permission.dto'
 import {
   getMethodActName,
+  getRequestFingerprint,
   mapRequestToQueryParams,
   returnError,
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
+import ActivityLogService from '#services/activity_log.service'
 import PermissionService from '#services/permission.service'
 import PermissionCheckService from '#services/permission_check.service'
 import { PaginationMeta } from '#types/app'
@@ -19,7 +21,8 @@ import { route } from '@izzyjs/route/client'
 export default class PermissionController {
   constructor(
     protected permSvc: PermissionService,
-    protected permChecker: PermissionCheckService
+    protected permChecker: PermissionCheckService,
+    protected activityLogSvc: ActivityLogService
   ) {}
 
   async viewCreate({ bouncer, inertia }: HttpContext) {
@@ -55,19 +58,31 @@ export default class PermissionController {
 
   // if POST request -> create
   // if PATCH request -> update
-  async storeOrUpdate({ request, response, bouncer }: HttpContext) {
+  async storeOrUpdate({ request, response, bouncer, auth }: HttpContext) {
     try {
       const payload = await request.validateUsing(createEditPermissionValidator)
 
       if (request.method() === 'POST') {
         await bouncer.with('PermissionPolicy').authorize('create', request)
 
-        await this.permSvc.create(payload)
+        const created = await this.permSvc.create(payload)
+        await this.activityLogSvc.log(
+          auth.user!.id,
+          'create_permission',
+          `Created permission:\n\`\`\`\n${payload.name} [${(created as unknown as { id: number }).id}]\n\`\`\``,
+          getRequestFingerprint(request)
+        )
       } else if (request.method() === 'PATCH') {
         const permission = await this.permSvc.findOrFail(payload.id!)
         await bouncer.with('PermissionPolicy').authorize('update', permission, request)
 
         await this.permSvc.update(permission, payload)
+        await this.activityLogSvc.log(
+          auth.user!.id,
+          'update_permission',
+          `Updated permission:\n\`\`\`\n${permission.name} [${permission.id}]\n\`\`\``,
+          getRequestFingerprint(request)
+        )
       } else {
         throwForbidden()
       }
@@ -82,13 +97,19 @@ export default class PermissionController {
     }
   }
 
-  async destroy({ response, params, bouncer }: HttpContext) {
+  async destroy({ response, request, params, bouncer, auth }: HttpContext) {
     try {
       const id = params.id
       const permission = await this.permSvc.findOrFail(id)
       await bouncer.with('PermissionPolicy').authorize('delete', permission)
 
       await this.permSvc.deletePermission(id)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'delete_permission',
+        `Deleted permission:\n\`\`\`\n${permission.name} [${permission.id}]\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       return response.status(200).json({
         status: 'success',
@@ -99,7 +120,7 @@ export default class PermissionController {
     }
   }
 
-  async bulkDestroy({ response, request, bouncer }: HttpContext) {
+  async bulkDestroy({ response, request, bouncer, auth }: HttpContext) {
     try {
       const { ids } = request.only(['ids'])
       if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
@@ -107,7 +128,14 @@ export default class PermissionController {
       const permissions = await this.permSvc.findByIds(ids)
       await bouncer.with('PermissionPolicy').authorize('deleteBulk', permissions)
 
+      const namesIds = permissions.map((p) => `- ${p.name} [${p.id}]`).join('\n')
       await this.permSvc.deletePermissions(ids)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'bulk_delete_permission',
+        `Deleted permissions:\n\`\`\`\n${namesIds}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
 
       return response.status(200).json({
         status: 'success',

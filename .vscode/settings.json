@@ -1,8 +1,9 @@
 {
   "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-    "source.fixAll": "explicit"
+    "source.organizeImports": "never",
+    "source.fixAll": "never"
   },
   "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
   "[typescript]": {

@@ -15,6 +15,8 @@ export function useGenericMutation<
   options?: UseMutationOptions<TResponse, AxiosError<TResponse>, TData> & {
     doRedirect?: boolean
     headers?: RawAxiosRequestHeaders | AxiosHeaders
+    notifySuccess?: boolean
+    notifyError?: boolean
   }
 ): UseMutationResult<TResponse, AxiosError<TResponse>, TData> {
   const {
@@ -25,6 +27,8 @@ export function useGenericMutation<
       'Content-Type': 'multipart/form-data',
       'X-Requested-With': 'XMLHttpRequest',
     },
+    notifySuccess = true,
+    notifyError = true,
     ...rest
   } = options ?? {}
 
@@ -47,10 +51,10 @@ export function useGenericMutation<
 
     onSuccess: (res, variables, results, context) => {
       if (res.status === 'success') {
-        NotifySuccess('Success', res.message)
+        notifySuccess && NotifySuccess('Success', res.message)
       } else {
         console.error(res)
-        NotifyError('Error', res.message)
+        notifyError && NotifyError('Error', res.message)
       }
 
       onSuccess?.(res, variables, results, context)
@@ -61,7 +65,7 @@ export function useGenericMutation<
       errorHandled = true // mark as handled
 
       console.error(error)
-      NotifyError('Error', error.response?.data.message || error.message)
+      notifyError && NotifyError('Error', error.response?.data.message || error.message)
       onError?.(error, variables, results, context)
     },
 
@@ -69,7 +73,7 @@ export function useGenericMutation<
       // Run fallback only if an error exists AND onError didn't handle it
       if (error && !errorHandled) {
         console.error(error)
-        NotifyError('Error', error.response?.data.message || error.message)
+        notifyError && NotifyError('Error', error.response?.data.message || error.message)
         onError?.(error, variables, results, context)
       }
 

@@ -1,9 +1,12 @@
+import { randomPasswordThrottle } from '#start/limiter'
+
 import router from '@adonisjs/core/services/router'
 
 import { middleware } from '../kernel.js'
 
 const ProfileController = () => import('#controllers/profile.controller')
 const MediaController = () => import('#controllers/media.controller')
+const UserController = () => import('#controllers/user.controller')
 
 router
   .group(() => {
@@ -22,6 +25,15 @@ router
               .as('api.v1.media.redirect')
           })
           .prefix('/media')
+
+        router
+          .group(() => {
+            router
+              .get('/random-password', [UserController, 'generateRandomPassword'])
+              .as('api.v1.utils.random-password')
+          })
+          .use(randomPasswordThrottle)
+          .prefix('/utils')
       })
       .prefix('/v1')
   })

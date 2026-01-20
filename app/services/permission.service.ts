@@ -14,6 +14,10 @@ export default class PermissionService {
     return await this.repo.paginate(q, queryParams)
   }
 
+  async findByIds(ids: any[]) {
+    return this.repo.model.query().whereIn('id', ids)
+  }
+
   async listIdNames() {
     return this.repo.getListIdNames()
   }
@@ -36,5 +40,9 @@ export default class PermissionService {
 
   async deletePermission(id: any) {
     return this.repo.deleteGeneric(id)
+  }
+
+  async deletePermissions(ids: any[]) {
+    return this.repo.deleteBulk(ids)
   }
 }

@@ -22,7 +22,7 @@ import { Input } from '~/components/ui/input'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
 import { PASS_REGEX } from '~/lib/constants'
-import { checkFormWithCaptcha, cn } from '~/lib/utils'
+import { checkFormWithCaptcha, cn, transformFullName, transformUsername } from '~/lib/utils'
 
 const maxWidth = 'max-w-md'
 export default function Page(props: SharedProps & InferPageProps<AuthController, 'viewRegister'>) {
@@ -132,7 +132,9 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                 required
                 value={form.values.full_name}
                 error={form.errors.full_name}
-                onChange={(e) => form.setFieldValue('full_name', e.target.value)}
+                disabled={mutation.isPending}
+                onChange={(e) => form.setFieldValue('full_name', transformFullName(e.target.value))}
+                onBlur={() => form.setFieldValue('full_name', form.values.full_name.trim())}
               />
 
               <Input
@@ -143,7 +145,9 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                 required
                 value={form.values.username}
                 error={form.errors.username}
-                onChange={(e) => form.setFieldValue('username', e.target.value)}
+                disabled={mutation.isPending}
+                onChange={(e) => form.setFieldValue('username', transformUsername(e.target.value))}
+                onBlur={() => form.setFieldValue('username', form.values.username.trim())}
               />
 
               <Input
@@ -154,6 +158,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                 required
                 value={form.values.email}
                 error={form.errors.email}
+                disabled={mutation.isPending}
                 onChange={(e) => form.setFieldValue('email', e.target.value)}
               />
 
@@ -167,6 +172,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                     required
                     value={form.values.password}
                     error={form.errors.password}
+                    disabled={mutation.isPending}
                     onChange={(e) => form.setFieldValue('password', e.target.value)}
                   />
                 }
@@ -191,6 +197,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                     required
                     value={form.values.password_confirmation}
                     error={form.errors.password_confirmation}
+                    disabled={mutation.isPending}
                     onChange={(e) => form.setFieldValue('password_confirmation', e.target.value)}
                   />
                 }

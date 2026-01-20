@@ -44,9 +44,9 @@ router
       })
       .prefix('/profile')
 
-    mapGenericRoutes('/users', UserController, 'user')
-    mapGenericRoutes('/permissions', PermissionController, 'permission')
-    mapGenericRoutes('/roles', RoleController, 'role')
+    mapGenericRoutes('/users', UserController, 'user', true)
+    mapGenericRoutes('/permissions', PermissionController, 'permission', true)
+    mapGenericRoutes('/roles', RoleController, 'role', true)
     mapGenericRoutes('/media', MediaController, 'media', true)
   })
   .use([middleware.auth(), middleware.verify_email()])

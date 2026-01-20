@@ -59,3 +59,13 @@ export const registerThrottle = limiter.define('register', () => {
       error.setMessage('Too many registrations, please try again later')
     })
 })
+
+export const randomPasswordThrottle = limiter.define('random_password', () => {
+  return limiter
+    .allowRequests(25)
+    .every('1 minute')
+    .blockFor('3 minute')
+    .limitExceeded((error) => {
+      error.setMessage('Too many requests, please try again later')
+    })
+})

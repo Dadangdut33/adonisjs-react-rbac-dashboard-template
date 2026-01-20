@@ -36,6 +36,7 @@ import {
   useDataTableColumns,
 } from 'mantine-datatable'
 import { useState } from 'react'
+import { GenericBulkDeleteDescription, GenericDeleteTitle } from '~/components/core/delete-helper'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterRadio } from '~/components/core/table-filter/radio-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
@@ -83,12 +84,17 @@ export default function page(props: PageProps) {
     })
   }
 
-  // Delete modal
-  const { confirmModal: _confirmDel, deleteMutation: _delMutation } = useDeleteGeneric({
+  // single Delete modal
+  useDeleteGeneric({
     isOpen,
     onClose,
     data: selected,
     onSuccess: () => {
+      // making sure to filter selectedrecords item
+      const deleted = selected
+      setSelectedRecords((prev) => {
+        return prev.filter((r) => r.id !== deleted?.id)
+      })
       setSelected(undefined)
       onClose()
       searchFilter.doSearch()
@@ -102,6 +108,25 @@ export default function page(props: PageProps) {
           Delete {pageTitle} ({selected?.name})
         </span>
       </div>
+    ),
+  })
+
+  // Bulk Delete
+  const { confirmModal: confirmBulkDel } = useDeleteGeneric({
+    data: { ids: selectedRecords.map((r) => r.id) }, // Pass IDs as data payload
+    isOpen: false,
+    onClose: () => {},
+    onSuccess: () => {
+      setSelectedRecords([])
+      searchFilter.doSearch()
+    },
+    routeName: `${baseRoute}.bulkDestroy` as RouteNameType,
+    deleteParam: { params: {} }, // For bulk delete we delete using id in body
+    title: <GenericDeleteTitle bulk={true} />,
+    message: (
+      <GenericBulkDeleteDescription length={selectedRecords.length}>
+        {selectedRecords.map((r) => '> ' + r.name).join('\n')}
+      </GenericBulkDeleteDescription>
     ),
   })
 
@@ -307,6 +332,18 @@ export default function page(props: PageProps) {
 
         <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>
           <Group justify="space-between" mb="md">
+            <Group>
+              <Button
+                color="red"
+                leftSection={<IconTrash size={18} />}
+                onClick={confirmBulkDel}
+                disabled={selectedRecords.length === 0 || !canDelete}
+              >
+                {selectedRecords.length
+                  ? `Delete Selected (${selectedRecords.length})`
+                  : 'Batch Delete'}
+              </Button>
+            </Group>
             <Group ms={'auto'} gap={'xs'} justify="flex-end">
               <Group gap={'xs'} justify="flex-end">
                 <TextInput
@@ -367,7 +404,10 @@ export default function page(props: PageProps) {
             recordsPerPage={meta.per_page}
             page={meta.current_page}
             recordsPerPageOptions={[5, 10, 15, 20, 50, 100]}
-            onSelectedRecordsChange={setSelectedRecords}
+            onSelectedRecordsChange={(rec) => {
+              const filtered = rec.filter((item) => !item.is_protected)
+              setSelectedRecords(filtered)
+            }}
             onPageChange={(page) => searchFilter.onPageChange(page)}
             onRecordsPerPageChange={(perPage) => searchFilter.onRecordsPerPage(perPage)}
             sortStatus={searchFilter.sortStatus as DataTableSortStatus<DataType>}

@@ -102,14 +102,55 @@ export function mapReqErrors(err: RequestError) {
   return mappedErrors
 }
 
-export function mapReadableErrors(err: RequestError | any) {
-  if (err.code !== 'E_VALIDATION_ERROR')
-    return err.messages?.[0]?.message || err.message || 'Something went wrong'
+function humanizeField(field: string) {
+  return field.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
-  const mappedErrors = mapReqErrors(err)
-  return Object.entries(mappedErrors)
-    .map(([_key, value]) => `- ${value}`)
-    .join('\n')
+function mapPostgresDuplicateError(err: any): string | null {
+  // Postgres unique violation
+  if (err?.code !== '23505') return null
+
+  // Try to extract column name
+  // Example detail: Key (name)=(admin) already exists.
+  const detail = err.detail || ''
+  const match = detail.match(/\((.*?)\)=\((.*?)\)/)
+
+  if (match) {
+    const [, field, value] = match
+    return `${humanizeField(field)} "${value}" already exists`
+  }
+
+  // Fallback to constraint name
+  if (err.constraint) {
+    const field = err.constraint
+      .replace(/_unique$/, '')
+      .split('_')
+      .slice(1)
+      .join('_')
+
+    return `${humanizeField(field)} already exists`
+  }
+
+  return 'Duplicate value already exists'
+}
+
+export function mapReadableErrors(err: RequestError | any) {
+  // Validation errors using vinejs
+  if (err.code === 'E_VALIDATION_ERROR') {
+    const mappedErrors = mapReqErrors(err)
+    return Object.entries(mappedErrors)
+      .map(([_key, value]) => `- ${value}`)
+      .join('\n')
+  }
+
+  // Postgres duplicate key
+  const duplicateMsg = mapPostgresDuplicateError(err)
+  if (duplicateMsg) {
+    return duplicateMsg
+  }
+
+  // Fallback
+  return err.messages?.[0]?.message || err.message || 'Something went wrong'
 }
 
 export function returnError(
@@ -121,10 +162,15 @@ export function returnError(
 ) {
   // eslint-disable-next-line
   let unique_error_id: string | undefined
+  const ifTheseCodesSkip = ['E_VALIDATION_ERROR', '23505' /* duplicate key error */]
+
   if (logErrors) {
+    // validation error and duplicate key error
     unique_error_id = randomUUID()
-    // only log if it is not a validation error
-    if (error.code !== 'E_VALIDATION_ERROR') logger.error(error, errorIdentifier + unique_error_id)
+
+    // only log if it is really an unexpected error
+    if (!ifTheseCodesSkip.includes(error.code))
+      logger.error(error, errorIdentifier + unique_error_id)
   }
 
   if (logValidation && error.code === 'E_VALIDATION_ERROR') {

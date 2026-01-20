@@ -330,6 +330,10 @@ export default abstract class BaseRepository<T extends LucidModel> {
     await instance.delete()
   }
 
+  public async deleteBulk(ids: any[]) {
+    return await this.model.query().whereIn('id', ids).delete()
+  }
+
   public async updateOrCreateGeneric<P extends Partial<ModelAttributes<InstanceType<T>>>>(data: P) {
     const { id, ...rest } = data as { id?: string | number }
     const filter = id ? ({ id } as unknown as Partial<ModelAttributes<InstanceType<T>>>) : {}

@@ -1,6 +1,7 @@
 import { Box, Popover, Progress, Text, rem } from '@mantine/core'
 import { IconCheck, IconX } from '@tabler/icons-react'
 import { PASS_REQ } from '~/lib/constants'
+import { cn } from '~/lib/utils'
 
 export default function PasswordRequirement({ meets, label }: { meets: boolean; label: string }) {
   return (
@@ -89,11 +90,13 @@ export function PasswordPopover({
   popoverOpened,
   setPopoverOpened,
   popoverDropdown,
+  className,
 }: {
   input: React.ReactNode
   popoverOpened: boolean
   setPopoverOpened: (value: boolean) => void
   popoverDropdown: React.ReactNode
+  className?: string
 }) {
   return (
     <Popover
@@ -106,7 +109,7 @@ export function PasswordPopover({
         <div
           onFocusCapture={() => setPopoverOpened(true)}
           onBlurCapture={() => setPopoverOpened(false)}
-          className="space-y-4 flex flex-col"
+          className={cn('space-y-4 flex flex-col', className)}
         >
           {input}
         </div>

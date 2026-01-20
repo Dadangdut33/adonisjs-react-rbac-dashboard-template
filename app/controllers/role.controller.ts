@@ -103,4 +103,23 @@ export default class RoleController {
       return returnError(response, error, `ROLE_DELETE`, { logErrors: true })
     }
   }
+
+  async bulkDestroy({ bouncer, response, request }: HttpContext) {
+    try {
+      const { ids } = request.only(['ids'])
+      if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
+
+      const roles = await this.roleSvc.findByIds(ids)
+      await bouncer.with('RolePolicy').authorize('deleteBulk', roles)
+
+      await this.roleSvc.deleteRoles(ids)
+
+      return response.status(200).json({
+        status: 'success',
+        message: 'Successfully deleted roles.',
+      })
+    } catch (error) {
+      return returnError(response, error, `ROLE_BULK_DELETE`, { logErrors: true })
+    }
+  }
 }

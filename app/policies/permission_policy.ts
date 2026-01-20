@@ -34,4 +34,11 @@ export default class PermissionPolicy extends CustomBasePolicy {
 
     return await this.perm.check(user, `${this.base}.delete`)
   }
+
+  async deleteBulk(user: User, permissions: Permission[]) {
+    const protectedPermissions = permissions.filter((permission) => permission.is_protected)
+    if (protectedPermissions.length > 0) return false // protected permission
+
+    return await this.perm.check(user, `${this.base}.delete`)
+  }
 }

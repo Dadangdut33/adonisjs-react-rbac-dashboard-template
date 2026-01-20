@@ -78,6 +78,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                 value={form.values.email}
                 error={form.errors.email}
                 onChange={(e) => form.setFieldValue('email', e.target.value)}
+                disabled={mutation.isPending}
               />
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -99,6 +100,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
                   value={form.values.password}
                   error={form.errors.password}
                   onChange={(e) => form.setFieldValue('password', e.target.value)}
+                  disabled={mutation.isPending}
                 />
               </div>
 

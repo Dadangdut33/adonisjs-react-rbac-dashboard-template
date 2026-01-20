@@ -6,6 +6,7 @@ import { Head } from '@inertiajs/react'
 import { route } from '@izzyjs/route/client'
 import {
   Accordion,
+  ActionIcon,
   Avatar,
   Button,
   Checkbox,
@@ -30,6 +31,7 @@ import {
   IconCloudUpload,
   IconDeviceFloppy,
   IconPhoto,
+  IconRefresh,
   IconTrash,
   IconUserPin,
 } from '@tabler/icons-react'
@@ -44,7 +46,7 @@ import { NotifyInfo } from '~/components/core/notify'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import DashboardLayout from '~/layouts/dashboard'
 import { PASS_REGEX } from '~/lib/constants'
-import { checkForm, getImagePreviewURL } from '~/lib/utils'
+import { checkForm, getImagePreviewURL, transformFullName, transformUsername } from '~/lib/utils'
 
 const baseRoute = 'user'
 const basePerm = 'user'
@@ -136,6 +138,18 @@ export default function Page(
       onSuccess: () => {
         form.reset()
       },
+    }
+  )
+
+  const generateRandomPasswordMutation = useGenericMutation(
+    'GET',
+    route('api.v1.utils.random-password').path,
+    {
+      onSuccess: (data) => {
+        form.setFieldValue('password', data.data)
+        form.setFieldValue('password_confirmation', data.data)
+      },
+      notifySuccess: false,
     }
   )
 
@@ -234,7 +248,10 @@ export default function Page(
                       value={form.values.username}
                       error={form.errors.username}
                       disabled={mutation.isPending}
-                      onChange={(e) => form.setFieldValue('username', e.target.value)}
+                      onChange={(e) =>
+                        form.setFieldValue('username', transformUsername(e.target.value))
+                      }
+                      onBlur={() => form.setFieldValue('username', form.values.username.trim())}
                     />
                     <TextInput
                       withAsterisk
@@ -243,7 +260,10 @@ export default function Page(
                       value={form.values.full_name}
                       error={form.errors.name}
                       disabled={mutation.isPending}
-                      onChange={(e) => form.setFieldValue('full_name', e.target.value)}
+                      onChange={(e) =>
+                        form.setFieldValue('full_name', transformFullName(e.target.value))
+                      }
+                      onBlur={() => form.setFieldValue('full_name', form.values.full_name.trim())}
                     />
                     <TextInput
                       withAsterisk
@@ -255,9 +275,9 @@ export default function Page(
                       disabled={mutation.isPending}
                       onChange={(e) => form.setFieldValue('email', e.target.value)}
                     />
-                    <Tooltip label="Mark as verified" withArrow>
+                    <Tooltip label="Mark email as verified" withArrow>
                       <Checkbox
-                        label="Email Terverifikasi"
+                        label="Email Is Verified"
                         checked={form.values.is_email_verified}
                         disabled={mutation.isPending}
                         error={form.errors.is_email_verified}
@@ -294,32 +314,50 @@ export default function Page(
                       }
                     />
 
-                    <PasswordPopover
-                      input={
-                        <PasswordInput
-                          label="Password Confirmation"
-                          id="password_confirmation"
-                          type="password"
-                          placeholder="******"
-                          required
-                          value={form.values.password_confirmation}
-                          error={form.errors.password_confirmation}
-                          onChange={(e) =>
-                            form.setFieldValue('password_confirmation', e.target.value)
+                    <Grid>
+                      <Grid.Col span={11}>
+                        <PasswordPopover
+                          input={
+                            <PasswordInput
+                              label="Password Confirmation"
+                              id="password_confirmation"
+                              type="password"
+                              placeholder="******"
+                              required
+                              value={form.values.password_confirmation}
+                              error={form.errors.password_confirmation}
+                              onChange={(e) =>
+                                form.setFieldValue('password_confirmation', e.target.value)
+                              }
+                            />
+                          }
+                          popoverOpened={openPWConfirm}
+                          setPopoverOpened={setOpenPWConfirm}
+                          popoverDropdown={
+                            <PasswordStrengthDropdown
+                              strength={strengthPassConfirm}
+                              password={password}
+                              confirmation={confirmation}
+                              isConfirmation
+                            />
                           }
                         />
-                      }
-                      popoverOpened={openPWConfirm}
-                      setPopoverOpened={setOpenPWConfirm}
-                      popoverDropdown={
-                        <PasswordStrengthDropdown
-                          strength={strengthPassConfirm}
-                          password={password}
-                          confirmation={confirmation}
-                          isConfirmation
-                        />
-                      }
-                    />
+                      </Grid.Col>
+                      <Grid.Col span={1} mt={'auto'}>
+                        {/* button to random generate */}
+                        <Tooltip label="Generate Random Password" position="top" withArrow>
+                          <ActionIcon
+                            onClick={() => generateRandomPasswordMutation.mutate(null)}
+                            disabled={generateRandomPasswordMutation.isPending}
+                            loading={generateRandomPasswordMutation.isPending}
+                            variant="outline"
+                            size={'input-sm'}
+                          >
+                            <IconRefresh size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Grid.Col>
+                    </Grid>
                   </SimpleGrid>
                 </Fieldset>
               </Stack>

@@ -29,9 +29,6 @@ export default class UserPolicy extends CustomBasePolicy {
     // first check if they have permission for the route or not
     if (!(await this.perm.checkInMethod(user, `${this.base}.create`, request, 'POST'))) return false
 
-    // then we must check they must be admin level or super admin to do this
-    if (!user.roles.some((r) => this.restrictedRoles.includes(r.id))) return false
-
     // additionally check if the user is creating an admin or super admin. Must be a super admin
     if (payload.roleIds.some((role) => this.restrictedRoles.includes(role)) && !user.isSuperAdmin)
       return false
@@ -44,10 +41,7 @@ export default class UserPolicy extends CustomBasePolicy {
     if (!(await this.perm.checkInMethod(user, `${this.base}.update`, request, 'PATCH')))
       return false
 
-    // then we must check they must be admin level or super admin to do this
-    if (!user.roles.some((r) => this.restrictedRoles.includes(r.id))) return false
-
-    // additionally check if the user is creating an admin or super admin. Must be a super admin
+    // check if the user is creating an admin or super admin. Must be a super admin
     if (payload.roleIds.some((role) => this.restrictedRoles.includes(role)) && !user.isSuperAdmin)
       return false
 

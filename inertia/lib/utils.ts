@@ -118,3 +118,12 @@ export function formatBytes(bytes: number, decimals = 2) {
 
   return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
+
+export const transformUsername = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9._-]/g, '')
+
+export const transformFullName = (value: string) =>
+  value.replace(/\s+/g, ' ').replace(/[^\p{L}\p{M}.'\-() ]/gu, '')

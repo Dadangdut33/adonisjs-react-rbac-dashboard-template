@@ -1,7 +1,9 @@
 import { UserDto } from '#dto/user.dto'
 import {
+  generateRandomPassword,
   getMethodActName,
   mapRequestToQueryParams,
+  returnError,
   throwForbidden,
   throwNotFound,
 } from '#lib/utils'
@@ -55,23 +57,16 @@ export default class UserController {
     })
   }
 
-  async viewList({ request, response, bouncer, inertia }: HttpContext) {
+  async viewList({ request, bouncer, inertia }: HttpContext) {
     await bouncer.with('UserPolicy').authorize('view')
 
-    try {
-      const q = mapRequestToQueryParams(request)
-      const dataQ = await this.userSvc.index(q)
+    const q = mapRequestToQueryParams(request)
+    const dataQ = await this.userSvc.index(q)
 
-      return inertia.render('dashboard/user/list', {
-        data: UserDto.collect(dataQ.all()),
-        meta: dataQ.getMeta() as PaginationMeta,
-      })
-    } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
-    }
+    return inertia.render('dashboard/user/list', {
+      data: UserDto.collect(dataQ.all()),
+      meta: dataQ.getMeta() as PaginationMeta,
+    })
   }
 
   // if POST request -> create
@@ -98,10 +93,7 @@ export default class UserController {
         redirect_to: route(`user.index`).path,
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, `USER_${getMethodActName(request)}`, { logErrors: true })
     }
   }
 
@@ -110,17 +102,60 @@ export default class UserController {
       if (await bouncer.with('UserPolicy').denies('delete')) return throwForbidden()
 
       const id = params.id
+
+      const user = await this.userSvc.findOrFail(id)
+      await user.load('profile')
+      const profile = user.profile
+
       await this.userSvc.deleteUser(id)
+
+      if (profile.avatar_id) {
+        await this.mediaSvc.delete(profile.avatar_id)
+      }
 
       return response.status(200).json({
         status: 'success',
         message: 'Successfully deleted user.',
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
+      return returnError(response, error, `USER_DELETE`, { logErrors: true })
+    }
+  }
+
+  async bulkDestroy({ response, request, bouncer }: HttpContext) {
+    try {
+      if (await bouncer.with('UserPolicy').denies('delete')) return throwForbidden()
+
+      const { ids } = request.only(['ids'])
+      if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
+
+      const users = await this.userSvc.findByIds(ids)
+
+      await this.userSvc.deleteUsers(ids)
+      for (const user of users) {
+        if (user.profile.avatar_id) {
+          await this.mediaSvc.delete(user.profile.avatar_id)
+        }
+      }
+
+      return response.status(200).json({
+        status: 'success',
+        message: 'Successfully deleted users.',
       })
+    } catch (error) {
+      return returnError(response, error, `USER_BULK_DELETE`, { logErrors: true })
+    }
+  }
+
+  async generateRandomPassword({ response }: HttpContext) {
+    try {
+      const password = generateRandomPassword()
+      return response.status(200).json({
+        status: 'success',
+        data: password,
+      })
+    } catch (error) {
+      return returnError(response, error, `USER_GENERATE_PASSWORD`, { logErrors: true })
     }
   }
 }

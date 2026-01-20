@@ -18,6 +18,10 @@ export default class RoleService {
     return await this.repo.paginate(q, queryParams)
   }
 
+  async findByIds(ids: any[]) {
+    return this.repo.model.query().whereIn('id', ids)
+  }
+
   async list() {
     return this.repo.getList()
   }
@@ -66,5 +70,9 @@ export default class RoleService {
 
   async deleteRole(id: any) {
     return this.repo.deleteGeneric(id)
+  }
+
+  async deleteRoles(ids: any[]) {
+    return this.repo.deleteBulk(ids)
   }
 }

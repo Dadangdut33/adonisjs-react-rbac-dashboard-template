@@ -50,7 +50,7 @@ import {
   useDataTableColumns,
 } from 'mantine-datatable'
 import { useState } from 'react'
-import { GeneriDeleteTitle, GenericBulkDeleteDescription } from '~/components/core/delete-helper'
+import { GenericBulkDeleteDescription, GenericDeleteTitle } from '~/components/core/delete-helper'
 import { useModals } from '~/components/core/modal/modal-hooks'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
@@ -75,6 +75,28 @@ function getIconForMime(mime: string) {
   if (mime.includes('zip') || mime.includes('compressed'))
     return <IconFileZip size={20} className="text-yellow-500" />
   return <IconFileTypePdf size={20} className="text-gray-500" /> // Default fallback
+}
+
+function previewItem(record: DataType, { width, height }: { width?: string; height?: string }) {
+  return record.mime_type.startsWith('image/') ? (
+    <Image
+      src={record.url}
+      fit="cover"
+      w={width ?? '100%'}
+      h={height ?? '100%'}
+      fallbackSrc="https://placehold.co/200x200?text=Err"
+    />
+  ) : record.mime_type.startsWith('video/') ? (
+    <video src={record.url} controls className="w-full h-full object-cover" />
+  ) : record.mime_type.startsWith('audio/') ? (
+    <div className="w-full h-full flex items-center justify-center p-4 bg-gray-50">
+      <audio src={record.url} controls className="w-full" />
+    </div>
+  ) : (
+    <div className="flex flex-col items-center justify-center text-gray-400">
+      {getIconForMime(record.mime_type)}
+    </div>
+  )
 }
 
 export default function page(props: PageProps) {
@@ -114,6 +136,11 @@ export default function page(props: PageProps) {
     onClose,
     data: selected,
     onSuccess: () => {
+      // making sure to filter selectedrecords item
+      const deleted = selected
+      setSelectedRecords((prev) => {
+        return prev.filter((r) => r.id !== deleted?.id)
+      })
       setSelected(undefined)
       onClose()
       searchFilter.doSearch()
@@ -141,7 +168,7 @@ export default function page(props: PageProps) {
     },
     routeName: `${baseRoute}.bulkDestroy` as RouteNameType,
     deleteParam: { params: {} }, // For bulk delete we delete using id in body
-    title: <GeneriDeleteTitle bulk={true} />,
+    title: <GenericDeleteTitle bulk={true} />,
     message: (
       <GenericBulkDeleteDescription length={selectedRecords.length}>
         {selectedRecords.map((r) => '> ' + r.name).join('\n')}
@@ -175,7 +202,7 @@ export default function page(props: PageProps) {
             </Table.Tr>
             <Table.Tr>
               <Table.Td fw={600}>Name</Table.Td>
-              <Table.Td>{record.name}</Table.Td>
+              <Table.Td className="break-all">{record.name}</Table.Td>
             </Table.Tr>
             <Table.Tr>
               <Table.Td fw={600}>Type</Table.Td>
@@ -189,7 +216,7 @@ export default function page(props: PageProps) {
             </Table.Tr>
             <Table.Tr>
               <Table.Td fw={600}>Drive Key</Table.Td>
-              <Table.Td>
+              <Table.Td className="break-all">
                 <Code className="break-all">{record.drive_key}</Code>
                 <CopyButton value={record.drive_key}>
                   {({ copied, copy }) => (
@@ -202,7 +229,7 @@ export default function page(props: PageProps) {
             </Table.Tr>
             <Table.Tr>
               <Table.Td fw={600}>Hash</Table.Td>
-              <Table.Td>
+              <Table.Td className="break-all">
                 <Code className="break-all">{record.hash}</Code>
                 <CopyButton value={record.hash}>
                   {({ copied, copy }) => (
@@ -243,20 +270,9 @@ export default function page(props: PageProps) {
       title: 'Preview',
       toggleable: true,
       render: (record) => {
-        if (record.mime_type.startsWith('image/')) {
-          return (
-            <Image
-              src={record.url}
-              w={300}
-              h={300}
-              fit="cover"
-              radius="sm"
-              fallbackSrc="https://placehold.co/40x40?text=Err"
-            />
-          )
-        }
-        return getIconForMime(record.mime_type)
+        return previewItem(record, { width: '200px', height: '200px' })
       },
+      width: 250,
     },
     {
       accessor: 'name',
@@ -274,7 +290,7 @@ export default function page(props: PageProps) {
       ),
       filtering: searchFilter.searchBy.name ? true : false,
       render: (record) => (
-        <Text fz="sm" fw={500}>
+        <Text fz="sm" fw={500} className="break-all">
           {record.name}
         </Text>
       ),
@@ -415,16 +431,16 @@ export default function page(props: PageProps) {
         <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>
           <Group justify="space-between" mb="md">
             <Group>
-              {selectedRecords.length > 0 && (
-                <Button
-                  color="red"
-                  leftSection={<IconTrash size={18} />}
-                  onClick={confirmBulkDel}
-                  disabled={!canDelete}
-                >
-                  Delete Selected ({selectedRecords.length})
-                </Button>
-              )}
+              <Button
+                color="red"
+                leftSection={<IconTrash size={18} />}
+                onClick={confirmBulkDel}
+                disabled={selectedRecords.length === 0 || !canDelete}
+              >
+                {selectedRecords.length
+                  ? `Delete Selected (${selectedRecords.length})`
+                  : 'Batch Delete'}
+              </Button>
             </Group>
             <Group ms={'auto'} gap={'xs'} justify="flex-end">
               <SegmentedControl
@@ -531,29 +547,7 @@ export default function page(props: PageProps) {
                     <Card.Section>
                       <AspectRatio ratio={1 / 1}>
                         <div className="relative w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                          {record.mime_type.startsWith('image/') ? (
-                            <Image
-                              src={record.url}
-                              fit="cover"
-                              w="100%"
-                              h="100%"
-                              fallbackSrc="https://placehold.co/200x200?text=Err"
-                            />
-                          ) : record.mime_type.startsWith('video/') ? (
-                            <video
-                              src={record.url}
-                              controls
-                              className="w-full h-full object-cover"
-                            />
-                          ) : record.mime_type.startsWith('audio/') ? (
-                            <div className="w-full h-full flex items-center justify-center p-4 bg-gray-50">
-                              <audio src={record.url} controls className="w-full" />
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center text-gray-400">
-                              {getIconForMime(record.mime_type)}
-                            </div>
-                          )}
+                          {previewItem(record, {})}
 
                           <div className="absolute top-2 left-2 z-10">
                             <Checkbox

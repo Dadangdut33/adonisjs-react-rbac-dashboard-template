@@ -98,4 +98,23 @@ export default class PermissionController {
       return returnError(response, error, 'PERMISSION_DELETE', { logErrors: true })
     }
   }
+
+  async bulkDestroy({ response, request, bouncer }: HttpContext) {
+    try {
+      const { ids } = request.only(['ids'])
+      if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
+
+      const permissions = await this.permSvc.findByIds(ids)
+      await bouncer.with('PermissionPolicy').authorize('deleteBulk', permissions)
+
+      await this.permSvc.deletePermissions(ids)
+
+      return response.status(200).json({
+        status: 'success',
+        message: 'Successfully deleted permissions.',
+      })
+    } catch (error) {
+      return returnError(response, error, 'PERMISSION_BULK_DELETE', { logErrors: true })
+    }
+  }
 }

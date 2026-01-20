@@ -35,6 +35,10 @@ export default class UserService {
     return await this.repo.findById(id)
   }
 
+  async findByIds(ids: any[]) {
+    return this.repo.model.query().whereIn('id', ids).preload('profile')
+  }
+
   async findOrFail(id: string) {
     return await this.repo.findOrFail(id)
   }
@@ -55,7 +59,7 @@ export default class UserService {
 
       let media: Media | null = null
       // first upload avatar if exist
-      if (avatar) media = await this.mediaRepo.upload(avatar, { keyPrefix: user.id }, trx)
+      if (avatar) media = await this.mediaRepo.upload(avatar, { keyPrefix: id }, trx)
 
       // create roles and profile
       await user.related('roles').attach(roleIds)
@@ -118,5 +122,9 @@ export default class UserService {
 
   async deleteUser(id: string) {
     return this.repo.deleteGeneric(id)
+  }
+
+  async deleteUsers(ids: string[]) {
+    return this.repo.deleteBulk(ids)
   }
 }

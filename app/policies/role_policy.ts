@@ -34,4 +34,11 @@ export default class RolePolicy extends CustomBasePolicy {
 
     return await this.perm.check(user, `${this.base}.delete`)
   }
+
+  async deleteBulk(user: User, roles: Role[]) {
+    const protectedRoles = roles.filter((role) => role.is_protected)
+    if (protectedRoles.length > 0) return false // protected role
+
+    return await this.perm.check(user, `${this.base}.delete`)
+  }
 }

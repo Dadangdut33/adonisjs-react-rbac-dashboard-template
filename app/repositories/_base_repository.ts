@@ -266,8 +266,6 @@ export default abstract class BaseRepository<T extends LucidModel> {
         params.sortableRelations
       )
 
-      console.log('handled', handled)
-
       if (handled) return query
 
       // column whitelist

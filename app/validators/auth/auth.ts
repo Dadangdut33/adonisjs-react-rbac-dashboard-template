@@ -25,7 +25,7 @@ export const registerValidator = vine.compile(
       .string()
       .minLength(8)
       .maxLength(255)
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,255}$/)
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,255}$/)
       .confirmed({ confirmationField: 'password_confirmation' }),
     cf_token,
   })
@@ -38,7 +38,7 @@ export const loginValidator = vine.compile(
       .string()
       .minLength(8)
       .maxLength(255)
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,255}$/),
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,255}$/),
     cf_token,
   })
 )

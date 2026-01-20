@@ -1,17 +1,14 @@
 import PreDefinedRolesId from '#enums/roles'
+import { generateRandomPassword } from '#lib/utils'
 import Profile from '#models/profile'
 import User from '#models/user'
 
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import crypto from 'node:crypto'
 
 export default class extends BaseSeeder {
   async run() {
     try {
-      const randomPassword = crypto
-        .randomBytes(32)
-        .toString('base64url') // safe for logs, URLs, env vars
-        .slice(0, 32)
+      const randomPassword = generateRandomPassword()
 
       const user = await User.create({
         full_name: 'Admin',

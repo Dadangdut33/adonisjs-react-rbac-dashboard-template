@@ -1,6 +1,6 @@
 import Tables from '#enums/tables'
 
-import { BaseModel, beforeDelete, beforeSave, column, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeDelete, column, manyToMany } from '@adonisjs/lucid/orm'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
@@ -30,13 +30,6 @@ export default class Permission extends BaseModel {
     pivotTable: Tables.ROLE_PERMISSIONS,
   })
   declare roles: ManyToMany<typeof Role>
-
-  @beforeSave()
-  public static preventProtectedEdit(permission: Permission) {
-    if (permission.$dirty && permission.is_protected) {
-      throw new Error('Cannot modify a protected permission')
-    }
-  }
 
   @beforeDelete()
   public static preventProtectedDelete(permission: Permission) {

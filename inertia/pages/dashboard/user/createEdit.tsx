@@ -217,6 +217,16 @@ export default function Page(
               <Stack gap={32}>
                 <Fieldset legend="Account Information">
                   <Stack>
+                    {data && (
+                      <TextInput
+                        withAsterisk
+                        label="ID"
+                        placeholder="id"
+                        value={data.id}
+                        disabled={true}
+                        readOnly
+                      />
+                    )}
                     <TextInput
                       withAsterisk
                       label="Username"

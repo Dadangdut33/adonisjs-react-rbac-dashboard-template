@@ -1,6 +1,6 @@
 'use client'
 
-import User from '#models/user'
+import { AuthUser } from '#types/models'
 
 import { SharedProps } from '@adonisjs/inertia/types'
 import { Link, usePage } from '@inertiajs/react'
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronsUpDown,
   GalleryVerticalEnd,
+  Images,
   LayoutDashboard,
   LogOut,
   ShieldUser,
@@ -206,6 +207,13 @@ const data = {
   ],
   management: [
     {
+      title: 'Media',
+      url: route('media.index').path,
+      icon: Images,
+      flat: true,
+      requiredPermission: 'media.view',
+    },
+    {
       title: 'Users',
       url: route('user.index').path,
       icon: UsersRound,
@@ -229,7 +237,9 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar> & { user: User }) {
+export function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: AuthUser }) {
   const { isMobile, state } = useSidebar()
   const { props: sharedProps } = usePage<SharedProps>()
   const { ConfirmLogoutModal } = useModals()

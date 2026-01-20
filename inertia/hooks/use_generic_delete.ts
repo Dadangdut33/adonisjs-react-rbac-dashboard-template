@@ -4,7 +4,7 @@ import { RouteNameType } from '#types/app'
 import { route } from '@izzyjs/route/client'
 import { UseMutationOptions } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useModals } from '~/components/core/modal/modal-hooks'
 
 import { useGenericMutation } from './use_generic_mutation'
@@ -18,6 +18,8 @@ type Props<TData = any, TResponse extends BaseAPIResponse = BaseAPIResponse> = {
   title?: string | React.ReactNode
   name?: string
   message?: string | React.ReactNode
+  extra?: string
+  enablePin?: boolean
   routeName: RouteNameType
   deleteParam: {
     params: Record<string, any>
@@ -33,6 +35,8 @@ export function useDeleteGeneric<T>({
   name,
   title,
   message,
+  extra,
+  enablePin,
   onSuccess,
   onClose,
   onError,
@@ -60,6 +64,8 @@ export function useDeleteGeneric<T>({
     name,
     title,
     message,
+    extra,
+    enablePin: enablePin ?? true, // default  to true
     onConfirm: () => {
       deleteMutation.mutate(data)
     },

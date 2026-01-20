@@ -1,9 +1,11 @@
-import { ReactNode, createContext, useCallback, useContext, useState } from 'react'
+import { ActionIcon, CopyButton, PinInput } from '@mantine/core'
+import { IconCheck, IconCopy } from '@tabler/icons-react'
+import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { Button, btnVariant } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  DialogDescriptionDiv,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,9 +21,11 @@ interface ModalConfig {
   confirmClassName?: string
   cancelVariant?: btnVariant
   cancelClassName?: string
+  withCancel?: boolean
   width?: string
   onConfirm?: () => void | Promise<void>
   onCancel?: () => void | Promise<void>
+  pinConfirmation?: boolean
 }
 
 interface ModalContextType {
@@ -69,6 +73,17 @@ function ModalRenderer({
   if (modals.length === 0) return null
 
   const modal = modals[modals.length - 1] // Show only the topmost modal
+  const [randomPin, setRandomPin] = useState<string>('')
+  const [inputPin, setInputPin] = useState<string>('')
+
+  useEffect(() => {
+    if (modal.pinConfirmation) {
+      setRandomPin(Math.floor(10000000 + Math.random() * 90000000).toString())
+      setInputPin('')
+    }
+  }, [modal.id, modal.pinConfirmation])
+
+  const isPinValid = !modal.pinConfirmation || inputPin === randomPin
 
   const handleConfirm = async () => {
     if (modal.confirmVariant === 'disabled') return
@@ -100,20 +115,50 @@ function ModalRenderer({
             )}
           </DialogTitle>
         </DialogHeader>
-        <DialogDescription className="whitespace-pre-wrap">{modal.message}</DialogDescription>
+        <DialogDescriptionDiv className="whitespace-pre-wrap">
+          <div className="flex flex-col gap-4">
+            <div>{modal.message}</div>
+            {modal.pinConfirmation && (
+              <div className="flex flex-col items-center gap-2">
+                <div className="text-sm font-medium">
+                  Please enter this PIN to confirm:{' '}
+                  <span className="font-bold">
+                    {randomPin.slice(0, 4) + '-' + randomPin.slice(4)}
+                  </span>
+                  <CopyButton value={randomPin}>
+                    {({ copied, copy }) => (
+                      <ActionIcon
+                        ms={1}
+                        variant="subtle"
+                        color={copied ? 'teal' : 'gray'}
+                        onClick={copy}
+                        size={'xs'}
+                      >
+                        {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+                      </ActionIcon>
+                    )}
+                  </CopyButton>
+                </div>
+                <PinInput length={8} type="number" value={inputPin} onChange={setInputPin} />
+              </div>
+            )}
+          </div>
+        </DialogDescriptionDiv>
         <DialogFooter>
-          <Button
-            variant={modal.cancelVariant || 'default'}
-            onClick={handleCancel}
-            disabled={modal.cancelVariant === 'disabled'}
-            className={modal.cancelClassName}
-          >
-            {modal.cancelText || 'No'}
-          </Button>
+          {modal.withCancel && (
+            <Button
+              variant={modal.cancelVariant || 'default'}
+              onClick={handleCancel}
+              disabled={modal.cancelVariant === 'disabled'}
+              className={modal.cancelClassName}
+            >
+              {modal.cancelText || 'No'}
+            </Button>
+          )}
           <Button
             variant={modal.confirmVariant}
             onClick={handleConfirm}
-            disabled={modal.confirmVariant === 'disabled'}
+            disabled={!isPinValid || modal.confirmVariant === 'disabled'}
             className={modal.confirmClassName}
           >
             {modal.confirmText || 'Yes'}
@@ -149,8 +194,10 @@ export function useConfirmModal() {
       confirmClassName?: string
       cancelClassName?: string
       width?: string
+      withCancel?: boolean
+      pinConfirmation?: boolean
     }) => {
-      return () => openModal(config)
+      return () => openModal({ ...config, withCancel: config.withCancel ?? true })
     },
     [openModal]
   )

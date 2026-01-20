@@ -1,6 +1,6 @@
 import Tables from '#enums/tables'
-import { getMediaUrlByKey } from '#lib/media_helper'
 
+import router from '@adonisjs/core/services/router'
 import { BaseModel, beforeCreate, column, computed } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
@@ -46,6 +46,9 @@ export default class Media extends BaseModel {
 
   @computed()
   public get url() {
-    return getMediaUrlByKey(this.drive_key)
+    return router
+      .builder()
+      .params({ id: this.id })
+      .makeSigned('api.v1.media.redirect', { expiresIn: '1h' })
   }
 }

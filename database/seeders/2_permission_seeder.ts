@@ -4,7 +4,7 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 export default class extends BaseSeeder {
   async run() {
-    const prefixes = ['user', 'role', 'permission']
+    const prefixes = ['user', 'role', 'permission', 'media']
     const permissionType = ['view', 'create', 'update', 'delete']
     const manual = ['dashboard.view', 'profile.view', 'profile.update']
     const manualMapped = manual.map((manualName) => ({ name: manualName, is_protected: true }))
@@ -31,6 +31,7 @@ export default class extends BaseSeeder {
           console.log(`Created permission: ${permission.name}`)
         } catch (e) {
           if (!`${e}`.includes('duplicate key value violates unique constraint')) {
+            console.log('Error on ', permission)
             console.log(e)
           }
         }

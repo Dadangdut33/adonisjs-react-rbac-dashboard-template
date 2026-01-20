@@ -1,5 +1,6 @@
 import Media from '#models/media'
 import MediaRepository from '#repositories/media.repository'
+import { QueryBuilderParams } from '#types/app'
 
 import { inject } from '@adonisjs/core'
 import { MultipartFile } from '@adonisjs/core/bodyparser'
@@ -8,6 +9,11 @@ import { TransactionClientContract } from '@adonisjs/lucid/types/database'
 @inject()
 export default class MediaService {
   constructor(protected repo: MediaRepository) {}
+
+  async index(queryParams: QueryBuilderParams<typeof Media>) {
+    const q = this.repo.query(queryParams)
+    return await this.repo.paginate(q, queryParams)
+  }
 
   async replace(
     file: MultipartFile,
@@ -58,5 +64,19 @@ export default class MediaService {
 
   async getMediaURLByKey(key: string) {
     return this.repo.getMediaURLByKey(key)
+  }
+
+  async delete(id: string) {
+    return this.repo.deleteById(id)
+  }
+
+  async deleteBulk(ids: string[]) {
+    // We do one by one to ensure file deletion on drive
+    // optimizations can be done later if needed
+    for (const id of ids) {
+      await this.repo.deleteById(id)
+    }
+
+    return true
   }
 }

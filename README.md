@@ -27,7 +27,7 @@ This template is currently made using adonisjs/core v6.x.
   - login
   - logout
   - Password reset
-- Media system (see all uploaded media, manage media)
+- Media system (see all uploaded media, view media metadata, delete media)
 - Permission system (manage permissions to access different parts of the application)
 - Role system (manage roles, assign permissions to roles)
 

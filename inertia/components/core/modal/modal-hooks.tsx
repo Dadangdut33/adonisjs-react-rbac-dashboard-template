@@ -8,6 +8,21 @@ export function useModals() {
   const confirmModal = useConfirmModal()
 
   return {
+    InfoModal: (config: {
+      message: string | React.ReactNode
+      title?: string | React.ReactNode
+      onConfirm?: () => void | Promise<void>
+      confirmText?: string
+      confirmVariant?: btnVariant
+      width?: string
+    }) => {
+      return confirmModal({
+        ...config,
+        withCancel: false,
+        confirmText: config.confirmText || 'Ok',
+      })
+    },
+
     ConfirmModal: (config: {
       message: string | React.ReactNode
       title?: string | React.ReactNode
@@ -118,6 +133,7 @@ export function useModals() {
       cancelText?: string
       confirmVariant?: btnVariant
       cancelVariant?: btnVariant
+      enablePin?: boolean
     }) => {
       return confirmModal({
         title: config.title || (
@@ -136,6 +152,7 @@ export function useModals() {
         confirmVariant: config.confirmVariant,
         cancelVariant: config.cancelVariant,
         confirmClassName: 'bg-red-500 hover:bg-red-600 text-white',
+        pinConfirmation: config.enablePin,
       })
     },
 

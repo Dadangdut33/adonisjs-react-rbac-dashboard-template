@@ -16,12 +16,12 @@ export default class extends BaseSeeder {
     )
 
     // get super admin role
-    const superAdminId = Roles.SUPER_ADMIN
+    const superAdminId = Roles.ADMIN
     const superAdminRole = await Role.query().where('id', superAdminId).first()
 
     // if no super admin role, throw error
     if (!superAdminRole) {
-      throw new Error('Super admin role not found')
+      throw new Error('Admin role not found')
     }
 
     // we get all the permission ids and attach to super admin role

@@ -11,3 +11,5 @@ export const emailValidatorUnique = vine
     const match = await query.from('users').select('id').where('email', value).first()
     return !match
   })
+  .maxLength(255)
+  .minLength(3)

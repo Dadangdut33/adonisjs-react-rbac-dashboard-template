@@ -1,4 +1,3 @@
-import Roles from '#enums/roles'
 import Tables from '#enums/tables'
 
 import { BaseSchema } from '@adonisjs/lucid/schema'
@@ -14,37 +13,6 @@ export default class extends BaseSchema {
 
       table.timestamp('created_at')
       table.timestamp('updated_at')
-    })
-
-    // Define 3 default roles that is protected
-    // So that they may never be deleted or modified
-    const now = new Date()
-    this.defer(async (query) => {
-      await query.table(this.tableName).multiInsert([
-        {
-          id: Roles.USER,
-          name: 'User',
-          is_protected: true,
-          created_at: now,
-          updated_at: now,
-        },
-        {
-          id: Roles.ADMIN,
-          name: 'Admin',
-          is_protected: true,
-          created_at: now,
-          updated_at: now,
-        },
-        {
-          id: Roles.SUPER_ADMIN,
-          name: 'Super Admin',
-          is_protected: true,
-          created_at: now,
-          updated_at: now,
-        },
-      ])
-
-      console.log('Roles created')
     })
   }
 

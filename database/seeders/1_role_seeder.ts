@@ -39,6 +39,7 @@ export default class extends BaseSeeder {
           console.log(`Created role: ${p.name}`)
         } catch (e) {
           if (!`${e}`.includes('duplicate key value violates unique constraint')) {
+            console.log('Error on ', p)
             console.log(e)
           }
         }

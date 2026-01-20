@@ -3,7 +3,33 @@ import { QueryBuilderParams, RequestError } from '#types/app'
 import { Exception } from '@adonisjs/core/exceptions'
 import { HttpContext } from '@adonisjs/core/http'
 import logger from '@adonisjs/core/services/logger'
-import { randomUUID } from 'node:crypto'
+import { randomInt, randomUUID } from 'node:crypto'
+
+export function generateRandomPassword(length: number = 24): string {
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const numbers = '0123456789'
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  const allChars = lowercase + uppercase + numbers + symbols
+
+  let password = ''
+  // Ensure we have at least one of each required type
+  password += lowercase[randomInt(0, lowercase.length)]
+  password += uppercase[randomInt(0, uppercase.length)]
+  password += numbers[randomInt(0, numbers.length)]
+  password += symbols[randomInt(0, symbols.length)]
+
+  // Fill the rest randomly
+  for (let i = password.length; i < length; i++) {
+    password += allChars[randomInt(0, allChars.length)]
+  }
+
+  // Shuffle the password
+  return password
+    .split('')
+    .sort(() => 0.5 - Math.random())
+    .join('')
+}
 
 export function mapRequestToQueryParams<T>(request: HttpContext['request']): QueryBuilderParams<T> {
   // sort direction is marked by if there is a "-" at the beginning of the sortBy

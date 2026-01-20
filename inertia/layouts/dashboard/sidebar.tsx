@@ -273,6 +273,14 @@ export function AppSidebar({
     },
   })
 
+  // check from the management menu. one of the requiredPermission is in the user permissions
+  const flatManagementRequiredPermissions = data.management.flatMap(
+    (item) => item.requiredPermission
+  )
+  const haveAnyManagementAccess = sharedProps.user?.permissions.some((permission) => {
+    return flatManagementRequiredPermissions.includes(permission)
+  })
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -323,19 +331,21 @@ export function AppSidebar({
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
-          <SidebarMenu>
-            {data.management.map((item) => (
-              <SidebarMenuEntry
-                key={item.title}
-                item={item}
-                currentPath={sharedProps.currentPath}
-                userPermissions={sharedProps.user?.permissions || []}
-              />
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {haveAnyManagementAccess && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Management</SidebarGroupLabel>
+            <SidebarMenu>
+              {data.management.map((item) => (
+                <SidebarMenuEntry
+                  key={item.title}
+                  item={item}
+                  currentPath={sharedProps.currentPath}
+                  userPermissions={sharedProps.user?.permissions || []}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

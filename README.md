@@ -16,6 +16,18 @@ This template is currently made using adonisjs/core v6.x.
 - Mantine DataTable
 - TypeScript
 
+## Preview
+
+| Feature                | Screenshots                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Homepage**           | ![Homepage](./screenshots/homepage.png) <br/> ![Homepage Light](./screenshots/homepage-light.png)                                           |
+| **Dashboard**          | ![Dashboard](./screenshots/dashboard.png) <br/> ![Dashboard Light](./screenshots/dashboard-light.png)                                       |
+| **Auth**               | ![Login](./screenshots/login.png) <br/> ![Register](./screenshots/register.png) <br/> ![Forgot Password](./screenshots/forgot-password.png) |
+| **Media**              | ![Media gallery](./screenshots/media-galleryview.png) <br/> ![Media table](./screenshots/media-tableview.png)                               |
+| **Users & Roles**      | ![Users](./screenshots/users.png) <br/> ![Roles](./screenshots/roles.png)                                                                   |
+| **Permissions & Logs** | ![Permissions](./screenshots/permissions.png) <br/> ![Activity log](./screenshots/activity-log.png)                                         |
+| **Profile**            | ![Profile](./screenshots/profile.png)                                                                                                       |
+
 ## Features
 
 - Drive system (Local / S3) (recommended S3 \*i only tested with S3 storage)
@@ -103,10 +115,10 @@ async create({ bouncer, request, response }: HttpContext) {
 }
 ```
 
-1. For validators its stored in `app/validators` folder. We then define the `inferred` type in `shared/types/inferred.d.ts` file. We can then import it in backend apps or in the frontend inertia pages.
-2. For the database table name, column name, etc, we configured it to be in snake_case. You can see for example in [user.ts](app/models/user.ts) we define `static namingStrategy = new SnakeCaseNamingStrategy()`. You can modify this for yourself easily in the [`_naming_strategy.ts`](app/models/_naming_strategy.ts) file located in the models folder if you want to, but i recommend to do it like this for less confusion. So the correct example is that lets say we have`created_at` column defined in `users` table, then when we acces it it shold also be `user.created_at` and it is the same when inputting data to the database.
-3. For the entrypoint of the frontend, its in `inertia/app/app.tsx` and `inertia/app/ssr.tsx`. You can read more about these in the [inertia docs](https://inertiajs.com/server-side-rendering).
-4. For the frontend:
+3. For validators its stored in `app/validators` folder. We then define the `inferred` type in `shared/types/inferred.d.ts` file. We can then import it in backend apps or in the frontend inertia pages.
+4. For the database table name, column name, etc, we configured it to be in snake_case. You can see for example in [user.ts](app/models/user.ts) we define `static namingStrategy = new SnakeCaseNamingStrategy()`. You can modify this for yourself easily in the [`_naming_strategy.ts`](app/models/_naming_strategy.ts) file located in the models folder if you want to, but i recommend to do it like this for less confusion. So the correct example is that lets say we have`created_at` column defined in `users` table, then when we acces it it shold also be `user.created_at` and it is the same when inputting data to the database.
+5. For the entrypoint of the frontend, its in `inertia/app/app.tsx` and `inertia/app/ssr.tsx`. You can read more about these in the [inertia docs](https://inertiajs.com/server-side-rendering).
+6. For the frontend:
 
    a. We store the inertia pages in `inertia/pages` (you can adjust this according to how you call the pages in the controllers in backend)
 

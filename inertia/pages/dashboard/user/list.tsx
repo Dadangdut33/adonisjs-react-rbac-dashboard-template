@@ -486,7 +486,11 @@ export default function page(props: PageProps) {
           </Group>
 
           <DataTable
-            minHeight={searchFilter.searchParamIsSet || searchFilter.isFetching ? 200 : undefined}
+            minHeight={
+              searchFilter.searchParamIsSet || searchFilter.isFetching || data.length === 0
+                ? 200
+                : undefined
+            }
             verticalSpacing="xs"
             horizontalSpacing={'xs'}
             striped

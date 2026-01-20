@@ -59,7 +59,8 @@ export default class UserService {
 
       let media: Media | null = null
       // first upload avatar if exist
-      if (avatar) media = await this.mediaRepo.upload(avatar, { keyPrefix: id }, trx)
+      if (avatar)
+        media = await this.mediaRepo.upload(avatar, { keyPrefix: id, tags: ['avatar'] }, trx)
 
       // create roles and profile
       await user.related('roles').attach(roleIds)
@@ -93,7 +94,7 @@ export default class UserService {
       if (avatar) {
         media = await this.mediaRepo.replaceById(
           avatar,
-          { keyPrefix: user.id, id: user.profile.avatar_id! },
+          { keyPrefix: user.id, id: user.profile.avatar_id!, tags: ['avatar'] },
           trx
         )
       } else if (avatar_clear) {

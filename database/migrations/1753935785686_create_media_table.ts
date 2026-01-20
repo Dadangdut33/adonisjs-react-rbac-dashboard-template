@@ -16,6 +16,7 @@ export default class extends BaseSchema {
       table.string('extension').notNullable()
       table.integer('size').notNullable()
       table.string('hash').notNullable()
+      table.json('tags').nullable()
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

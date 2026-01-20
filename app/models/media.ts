@@ -33,6 +33,9 @@ export default class Media extends BaseModel {
   @column()
   declare hash: string
 
+  @column()
+  declare tags: string[] | null
+
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime
 

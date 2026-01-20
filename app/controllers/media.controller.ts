@@ -16,23 +16,16 @@ export default class MediaController {
     protected permChecker: PermissionCheckService
   ) {}
 
-  async viewList({ request, response, bouncer, inertia }: HttpContext) {
+  async viewList({ request, bouncer, inertia }: HttpContext) {
     await bouncer.with('MediaPolicy').authorize('view')
 
-    try {
-      const q = mapRequestToQueryParams(request)
-      const dataQ = await this.mediaSvc.index(q)
+    const q = mapRequestToQueryParams(request)
+    const dataQ = await this.mediaSvc.index(q)
 
-      return inertia.render('dashboard/media/list', {
-        data: MediaDto.collect(dataQ.all()),
-        meta: dataQ.getMeta() as PaginationMeta,
-      })
-    } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
-    }
+    return inertia.render('dashboard/media/list', {
+      data: MediaDto.collect(dataQ.all()),
+      meta: dataQ.getMeta() as PaginationMeta,
+    })
   }
 
   async destroy({ response, params, bouncer }: HttpContext) {
@@ -47,10 +40,7 @@ export default class MediaController {
         message: 'Successfully deleted media.',
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, 'MEDIA_DELETE', {})
     }
   }
 
@@ -68,10 +58,7 @@ export default class MediaController {
         message: 'Successfully deleted selected media.',
       })
     } catch (error) {
-      return response.status(error.status || 500).json({
-        status: 'error',
-        message: error.messages?.[0]?.message || error.message || 'Something went wrong',
-      })
+      return returnError(response, error, 'MEDIA_BULK_DELETE', {})
     }
   }
 

@@ -50,6 +50,7 @@ export default class ProfileController {
         media = await this.mediaSvc.replaceById(data.avatar, {
           id: profile?.avatar_id!,
           keyPrefix: userId!,
+          tags: ['avatar'],
         })
 
       await this.profileSvc.update(userId!, { ...data, avatar_id: media?.id })

@@ -228,6 +228,18 @@ export default function page(props: PageProps) {
               </Table.Td>
             </Table.Tr>
             <Table.Tr>
+              <Table.Td fw={600}>Tags</Table.Td>
+              <Table.Td className="break-all">
+                <div className="flex flex-wrap gap-2">
+                  {record.tags?.map((tag) => (
+                    <Badge key={tag} variant="light">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </Table.Td>
+            </Table.Tr>
+            <Table.Tr>
               <Table.Td fw={600}>Hash</Table.Td>
               <Table.Td className="break-all">
                 <Code className="break-all">{record.hash}</Code>
@@ -310,6 +322,31 @@ export default function page(props: PageProps) {
         />
       ),
       filtering: searchFilter.searchBy.mime_type ? true : false,
+    },
+    {
+      accessor: 'tags',
+      title: 'Tags',
+      toggleable: true,
+      sortable: true,
+      width: 160,
+      filter: () => (
+        <FilterText
+          column={'tags'}
+          searchFilter={searchFilter}
+          label="Tags"
+          description="Filter by tags"
+        />
+      ),
+      render: (record) => (
+        <div className="flex flex-wrap gap-2">
+          {record.tags?.map((tag) => (
+            <Badge key={tag} variant="light">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      ),
+      filtering: searchFilter.searchBy.tags ? true : false,
     },
     {
       accessor: 'size',
@@ -514,7 +551,11 @@ export default function page(props: PageProps) {
 
           {viewMode === 'list' ? (
             <DataTable
-              minHeight={searchFilter.searchParamIsSet || searchFilter.isFetching ? 200 : undefined}
+              minHeight={
+                searchFilter.searchParamIsSet || searchFilter.isFetching || data.length === 0
+                  ? 200
+                  : undefined
+              }
               verticalSpacing="xs"
               horizontalSpacing={'xs'}
               striped

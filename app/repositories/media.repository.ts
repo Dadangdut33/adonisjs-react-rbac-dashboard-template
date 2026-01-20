@@ -25,11 +25,16 @@ export default class MediaRepository extends BaseRepository<typeof Media> {
 
   async replace(
     file: MultipartFile,
-    { media, keyPrefix, onDupe }: { media?: Media; keyPrefix: string; onDupe?: 'add' | 'use_old' },
+    {
+      media,
+      keyPrefix,
+      onDupe,
+      tags,
+    }: { media?: Media; keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ) {
     if (media) await this.delete(media)
-    return this.upload(file, { keyPrefix, onDupe }, trx)
+    return this.upload(file, { keyPrefix, onDupe, tags }, trx)
   }
 
   async replaceById(
@@ -38,11 +43,12 @@ export default class MediaRepository extends BaseRepository<typeof Media> {
       id,
       keyPrefix,
       onDupe,
-    }: { id?: string | null; keyPrefix: string; onDupe?: 'add' | 'use_old' },
+      tags,
+    }: { id?: string | null; keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ) {
     if (id) await this.deleteById(id)
-    return this.upload(file, { keyPrefix, onDupe }, trx)
+    return this.upload(file, { keyPrefix, onDupe, tags }, trx)
   }
 
   /**
@@ -62,7 +68,7 @@ export default class MediaRepository extends BaseRepository<typeof Media> {
    */
   async upload(
     file: MultipartFile,
-    { keyPrefix, onDupe }: { keyPrefix: string; onDupe?: 'add' | 'use_old' },
+    { keyPrefix, onDupe, tags }: { keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ): Promise<Media> {
     if (!file.tmpPath) throw new Error('File upload failed, temporary path not available.')
@@ -93,6 +99,7 @@ export default class MediaRepository extends BaseRepository<typeof Media> {
         extension: file.extname,
         mime_type: `${file.type}/${file.subtype}`,
         size: file.size,
+        tags,
         hash,
       },
       trx

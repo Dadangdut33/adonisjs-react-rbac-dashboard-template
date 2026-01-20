@@ -17,7 +17,7 @@ export default class MediaService {
 
   async replace(
     file: MultipartFile,
-    opts: { media?: Media; keyPrefix: string; onDupe?: 'add' | 'use_old' },
+    opts: { media?: Media; keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ) {
     return this.repo.replace(file, opts, trx)
@@ -25,7 +25,7 @@ export default class MediaService {
 
   async replaceById(
     file: MultipartFile,
-    opts: { id?: string | null; keyPrefix: string; onDupe?: 'add' | 'use_old' },
+    opts: { id?: string | null; keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ) {
     return this.repo.replaceById(file, opts, trx)
@@ -48,10 +48,14 @@ export default class MediaService {
    */
   async upload(
     file: MultipartFile,
-    { keyPrefix, onDupe = 'add' }: { keyPrefix: string; onDupe?: 'add' | 'use_old' },
+    {
+      keyPrefix,
+      onDupe = 'add',
+      tags,
+    }: { keyPrefix: string; onDupe?: 'add' | 'use_old'; tags?: string[] },
     trx?: TransactionClientContract
   ): Promise<Media> {
-    return this.repo.upload(file, { keyPrefix, onDupe }, trx)
+    return this.repo.upload(file, { keyPrefix, onDupe, tags }, trx)
   }
 
   async getMediaURL(media: Media) {

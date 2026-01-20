@@ -11,7 +11,7 @@ export default function ButtonGroup() {
         <IconArrowLeft />
         Go Back
       </Button>
-      <Button variant="neutral" onClick={() => router.visit('/')}>
+      <Button variant="default" onClick={() => router.visit('/')}>
         <IconHome2 />
         Back to Home
       </Button>

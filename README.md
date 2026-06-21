@@ -4,7 +4,7 @@
 
 An open-source fullstack application template built with AdonisJS and ReactJS with Role-Based Access Control (RBAC) system also with a dashboard and basic shadCN / Mantine styled UI.
 
-This template is currently made using adonisjs/core v6.x.
+This template is currently made using adonisjs/core v7.x.
 
 ## Stacks
 

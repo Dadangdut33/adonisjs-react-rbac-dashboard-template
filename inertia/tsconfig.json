@@ -6,7 +6,12 @@
     "paths": {
       "~/*": ["./*"],
       "@app/*": ["../app/*"],
-      "#types/*": ["../shared/types/*"]
+      "#types/*": ["../shared/types/*"],
+      "#transformers/*": ["../app/transformers/*"],
+      "#middleware/*": ["../app/middleware/*"],
+      "~/generated/*": ["../.adonisjs/client/*"],
+      "~data": ["../.adonisjs/client/data.d.ts"],
+      "~registry": ["../.adonisjs/client/registry/index.ts"]
     }
   },
   "include": ["./**/*.ts", "./**/*.tsx"]

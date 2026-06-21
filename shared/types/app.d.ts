@@ -1,4 +1,4 @@
-import type { RouteWithName, RouteWithParams } from '@izzyjs/route/routes'
+import type { RoutesList } from '@adonisjs/core/types/http'
 
 export interface QueryBuilderParams<T extends LucidModel> {
   page?: number
@@ -12,6 +12,7 @@ export interface QueryBuilderParams<T extends LucidModel> {
 
   sortBy?: string
   sortDirection?: 'asc' | 'desc'
+  filter?: 'all' | 'images' | 'files' | 'videos' | 'audio'
   preload?: ExtractModelRelations<InstanceType<T>>[]
   filters?: Partial<ModelAttributes<InstanceType<T>>>
 
@@ -63,21 +64,21 @@ export type FlashAlertType = {
   warning?: string
 }
 
-// Helper for routename type - we copy pasted it from izzyjs
-export type RouteNameType = Exclude<RouteWithName, RouteWithParams>['name']
+export type RouteNameType = keyof RoutesList['ALL']
 
+// * IMPORTANT *
 // Helper for paginated data
+// This appear as snake_case because of how we set the naming strategy in each model
 export type PaginationMeta = {
-  current_page: number
-  per_page: number
   total: number
+  per_page: number
 
+  current_page: number
   first_page: number
-  first_page_url: string
-
   last_page: number
-  last_page_url: string
 
+  first_page_url: string
+  last_page_url: string
   next_page_url: string | null
-  prev_page_url: string | null
+  previous_page_url: string | null
 }

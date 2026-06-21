@@ -1,7 +1,7 @@
 import type { Authenticators } from '@adonisjs/auth/types'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
-import { route } from '@izzyjs/route/client'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 /**
  * When this user is logged-in, they should be redirected to dashboard
@@ -10,7 +10,7 @@ export default class IsLoggedInMiddleware {
   /**
    * The URL to redirect to when user is logged-in
    */
-  redirect_to = route('dashboard.view').path
+  redirect_to = urlFor('dashboard.view')
 
   async handle(
     ctx: HttpContext,

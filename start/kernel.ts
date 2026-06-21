@@ -26,8 +26,7 @@ server.use([
   () => import('@adonisjs/static/static_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
   () => import('@adonisjs/vite/vite_middleware'),
-  () => import('@adonisjs/inertia/inertia_middleware'),
-  () => import('@izzyjs/route/izzy_middleware'),
+  () => import('#middleware/inertia_middleware'),
 ])
 
 /**
@@ -53,4 +52,5 @@ export const middleware = router.named({
   verify_email: () => import('#middleware/verify_email_middleware'),
   auth: () => import('#middleware/auth_middleware'),
   silent_auth: () => import('#middleware/silent_auth_middleware'),
+  internal_api_only: () => import('#middleware/internal_api_only_middleware'),
 })

@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 
 import SnakeCaseNamingStrategy from './_naming_strategy.js'
 import Permission from './permission.js'
+import Tag from './tag.js'
 import User from './user.js'
 
 // We must have predefined roles in #enums/roles.ts
@@ -24,6 +25,9 @@ export default class Role extends BaseModel {
   @column()
   declare is_protected: boolean
 
+  @column()
+  declare can_access_all_media_tags: boolean
+
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime
 
@@ -39,6 +43,13 @@ export default class Role extends BaseModel {
     pivotTable: Tables.ROLE_PERMISSIONS,
   })
   declare permissions: ManyToMany<typeof Permission>
+
+  @manyToMany(() => Tag, {
+    pivotTable: Tables.ROLE_MEDIA_TAGS,
+    pivotForeignKey: 'role_id',
+    pivotRelatedForeignKey: 'tag_id',
+  })
+  declare media_tags: ManyToMany<typeof Tag>
 
   @beforeDelete()
   public static preventProtectedDelete(role: Role) {

@@ -1,4 +1,4 @@
-import User from '#models/user'
+import type User from '#models/user'
 
 import CustomBasePolicy from './custom_base_policy.js'
 

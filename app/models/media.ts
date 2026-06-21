@@ -1,11 +1,13 @@
 import Tables from '#enums/tables'
 
 import router from '@adonisjs/core/services/router'
-import { BaseModel, beforeCreate, column, computed } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, column, computed, manyToMany } from '@adonisjs/lucid/orm'
+import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
 
 import SnakeCaseNamingStrategy from './_naming_strategy.js'
+import Tag from './tag.js'
 
 export default class Media extends BaseModel {
   static namingStrategy = new SnakeCaseNamingStrategy()
@@ -33,12 +35,12 @@ export default class Media extends BaseModel {
   @column()
   declare hash: string
 
-  @column({
-    // prepare so that the string[] that we input get automatically stored as Json.stringify
-    prepare: (value: string[] | null) => JSON.stringify(value),
-    // dont need prepare because its alread read as string[]
+  @manyToMany(() => Tag, {
+    pivotTable: Tables.MEDIA_TAGS,
+    pivotForeignKey: 'media_id',
+    pivotRelatedForeignKey: 'tag_id',
   })
-  declare tags: string[] | null
+  declare tags: ManyToMany<typeof Tag>
 
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime

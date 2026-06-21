@@ -1,8 +1,8 @@
-import User from '#models/user'
+import type User from '#models/user'
 import env from '#start/env'
 
+import { urlFor } from '@adonisjs/core/services/url_builder'
 import { BaseMail } from '@adonisjs/mail'
-import { route } from '@izzyjs/route/client'
 
 import { head } from './_shared.js'
 
@@ -23,7 +23,7 @@ export default class PasswordResetNotification extends BaseMail {
    * the email is sent or queued.
    */
   prepare() {
-    const resetLink = `${env.get('APP_URL')}${route('auth.resetPassword', { params: { token: this.token } }).path}`
+    const resetLink = `${env.get('APP_URL')}${urlFor('auth.resetPassword', { token: this.token })}`
 
     this.message.to(this.user.email).html(`
       <html>

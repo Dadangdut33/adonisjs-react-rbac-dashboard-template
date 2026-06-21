@@ -1,8 +1,8 @@
-import User from '#models/user'
+import type User from '#models/user'
 import env from '#start/env'
 
+import { urlFor } from '@adonisjs/core/services/url_builder'
 import { BaseMail } from '@adonisjs/mail'
-import { route } from '@izzyjs/route/client'
 
 import { head } from './_shared.js'
 
@@ -25,7 +25,7 @@ export default class VerifyEmailNotification extends BaseMail {
   prepare() {
     if (!this.from) throw new Error('SMTP_FROM is not set')
 
-    const verificationLink = `${env.get('APP_URL')}${route('auth.verifyEmail.verify', { params: { token: this.token } }).path}`
+    const verificationLink = `${env.get('APP_URL')}${urlFor('auth.verifyEmail.verify', { token: this.token })}`
 
     this.message.to(this.user.email).html(`
       <html>

@@ -10,6 +10,8 @@ import 'mantine-datatable/styles.layer.css'
 import ReactDOMServer from 'react-dom/server'
 import AppProvider from '~/components/provider'
 import '~/css/app.css'
+import '~/css/tiptap/_keyframe-animations.scss'
+import '~/css/tiptap/_variables.scss'
 import { theme } from '~/theme'
 
 const appName = import.meta.env.VITE_APP_NAME || 'AdonisJS'
@@ -20,8 +22,8 @@ export default function render(page: any) {
     title: (title) => (title ? `${title} - ${appName}` : appName),
     render: ReactDOMServer.renderToString,
     resolve: (name) => {
-      const pages = import.meta.glob('../pages/**/*.tsx', { eager: true })
-      return pages[`../pages/${name}.tsx`]
+      const pages = import.meta.glob('./pages/**/*.tsx', { eager: true })
+      return pages[`./pages/${name}.tsx`]
     },
     setup: ({ App, props }) => {
       return (

@@ -10,6 +10,6 @@ export default class HomeController {
   async view({ inertia, bouncer }: HttpContext) {
     if (await bouncer.with('DashboardPolicy').denies('view')) return throwForbidden()
 
-    return inertia.render('dashboard/index')
+    return inertia.render('dashboard/index', {})
   }
 }

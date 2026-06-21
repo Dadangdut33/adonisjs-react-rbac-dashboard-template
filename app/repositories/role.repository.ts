@@ -1,11 +1,15 @@
 import Role from '#models/role'
-import { RolePayload } from '#types/inferred'
+import TagRepository from '#repositories/tag.repository'
+import type { RolePayload } from '#types/inferred'
 
 import BaseRepository from './_base_repository.js'
 
 export default class RoleRepository extends BaseRepository<typeof Role> {
+  protected tagRepo: TagRepository
+
   constructor() {
     super(Role)
+    this.tagRepo = new TagRepository()
   }
 
   async getList() {
@@ -18,24 +22,28 @@ export default class RoleRepository extends BaseRepository<typeof Role> {
   }
 
   async createRole(data: RolePayload) {
-    const { permissionIds = [], ...rest } = data
+    const { permissionIds = [], mediaTagIds = [], ...rest } = data
 
     const role = await this.model.create(rest)
 
-    // sync the roles
+    // sync role relations
     await role.related('permissions').sync(permissionIds)
+    await role.related('media_tags').sync(mediaTagIds)
+    await this.tagRepo.cleanupUnusedTags('media')
 
     return role
   }
 
   async updateRole(role: Role, data: RolePayload) {
-    const { permissionIds = [], ...rest } = data
+    const { permissionIds = [], mediaTagIds = [], ...rest } = data
 
     role.merge(rest)
     await role.save()
 
-    // sync the roles
+    // sync role relations
     await role.related('permissions').sync(permissionIds)
+    await role.related('media_tags').sync(mediaTagIds)
+    await this.tagRepo.cleanupUnusedTags('media')
 
     return role
   }

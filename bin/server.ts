@@ -9,6 +9,7 @@
 |
 */
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
+import { Worker } from 'adonisjs-scheduler'
 import 'reflect-metadata'
 
 /**
@@ -30,11 +31,26 @@ const IMPORTER = (filePath: string) => {
 
 new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
+    let schedulerWorker: Worker | null = null
+
     app.booting(async () => {
       await import('#start/env')
     })
     app.listen('SIGTERM', () => app.terminate())
     app.listenIf(app.managedByPm2, 'SIGINT', () => app.terminate())
+
+    // start scheduler on app boot
+    app.ready(async () => {
+      await import('#start/scheduler')
+
+      schedulerWorker = new Worker(app)
+      await schedulerWorker.start()
+    })
+    app.terminating(async () => {
+      if (schedulerWorker) {
+        await schedulerWorker.stop()
+      }
+    })
   })
   .httpServer()
   .start()

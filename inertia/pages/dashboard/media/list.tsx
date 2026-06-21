@@ -1,15 +1,11 @@
-import MediaController from '#controllers/media.controller'
-import { RouteNameType } from '#types/app'
+import type { PaginationMeta } from '#types/app'
 
-import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
 import { Head } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import {
   ActionIcon,
   AspectRatio,
   Badge,
   Box,
-  Button,
   Card,
   Center,
   Checkbox,
@@ -17,32 +13,32 @@ import {
   CopyButton,
   Group,
   Image,
-  Loader,
   Tooltip as MantineTooltip,
   Paper,
   SegmentedControl,
   SimpleGrid,
   Table,
   Text,
-  TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import {
   IconCheck,
   IconCopy,
   IconEye,
+  IconFileTypeDoc,
   IconFileTypePdf,
+  IconFileTypeTxt,
+  IconFileTypeXls,
   IconFileZip,
   IconLayoutGrid,
   IconList,
   IconMovie,
   IconMusic,
   IconPhoto,
-  IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { ListRestart, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import {
   DataTable,
   DataTableProps,
@@ -50,52 +46,188 @@ import {
   useDataTableColumns,
 } from 'mantine-datatable'
 import { useState } from 'react'
+import { DashboardSearchPanel } from '~/components/core/dashboard/search-panel'
+import { DashboardTableButtons } from '~/components/core/dashboard/table-buttons'
 import { GenericBulkDeleteDescription, GenericDeleteTitle } from '~/components/core/delete-helper'
 import { useModals } from '~/components/core/modal/modal-hooks'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
 import { TooltipIfTrue } from '~/components/core/tooltipper'
-import classes from '~/css/TableUtils.module.css'
+import { Data } from '~/generated/data'
 import { useDeleteGeneric } from '~/hooks/use_generic_delete'
 import useSearchFilter from '~/hooks/use_search_filter'
 import DashboardLayout from '~/layouts/dashboard'
-import { cn, formatBytes } from '~/lib/utils'
+import { urlFor } from '~/lib/client'
+import { formatBytes } from '~/lib/utils'
+import { InertiaProps } from '~/types'
 
 const baseRoute = 'media'
 const basePerm = 'media'
 const pageTitle = 'Media'
-type PageProps = SharedProps & InferPageProps<MediaController, 'viewList'>
+type PageProps = InertiaProps<{
+  data: Data.Media[]
+  meta: PaginationMeta
+}>
 type DataType = PageProps['data'][number]
 
-function getIconForMime(mime: string) {
-  if (mime.startsWith('image/')) return <IconPhoto size={20} className="text-blue-500" />
-  if (mime.startsWith('video/')) return <IconMovie size={20} className="text-red-500" />
-  if (mime.startsWith('audio/')) return <IconMusic size={20} className="text-green-500" />
-  if (mime === 'application/pdf') return <IconFileTypePdf size={20} className="text-red-600" />
+function getIconForMime(mime: string, size = 20) {
+  if (mime.startsWith('image/')) return <IconPhoto size={size} className="text-blue-500" />
+  if (mime.startsWith('video/')) return <IconMovie size={size} className="text-red-500" />
+  if (mime.startsWith('audio/')) return <IconMusic size={size} className="text-green-500" />
+  if (mime === 'application/pdf') return <IconFileTypePdf size={size} className="text-red-600" />
+  if (mime.includes('word') || mime.includes('document'))
+    return <IconFileTypeDoc size={size} className="text-blue-600" />
+  if (mime.includes('sheet') || mime.includes('excel'))
+    return <IconFileTypeXls size={size} className="text-emerald-600" />
+  if (mime.startsWith('text/')) return <IconFileTypeTxt size={size} className="text-slate-500" />
   if (mime.includes('zip') || mime.includes('compressed'))
-    return <IconFileZip size={20} className="text-yellow-500" />
-  return <IconFileTypePdf size={20} className="text-gray-500" /> // Default fallback
+    return <IconFileZip size={size} className="text-yellow-500" />
+  return <IconFileTypeTxt size={size} className="text-gray-500" /> // Default fallback
 }
 
-function previewItem(record: DataType, { width, height }: { width?: string; height?: string }) {
-  return record.mime_type.startsWith('image/') ? (
-    <Image
-      src={record.url}
-      fit="cover"
-      w={width ?? '100%'}
-      h={height ?? '100%'}
-      fallbackSrc="https://placehold.co/200x200?text=Err"
-    />
-  ) : record.mime_type.startsWith('video/') ? (
-    <video src={record.url} controls className="w-full h-full object-cover" />
-  ) : record.mime_type.startsWith('audio/') ? (
-    <div className="w-full h-full flex items-center justify-center p-4 bg-gray-50">
-      <audio src={record.url} controls className="w-full" />
-    </div>
-  ) : (
-    <div className="flex flex-col items-center justify-center text-gray-400">
-      {getIconForMime(record.mime_type)}
-    </div>
+function mediaTypeFromMime(mime: string) {
+  if (mime.startsWith('image/')) return 'Image'
+  if (mime.startsWith('video/')) return 'Video'
+  if (mime.startsWith('audio/')) return 'Audio'
+  return 'File'
+}
+
+function extensionFromRecord(record: DataType) {
+  if (record.extension) return record.extension.toUpperCase()
+  const last = record.name?.split('.')?.pop()
+  return last ? last.toUpperCase() : 'FILE'
+}
+
+function previewItem(
+  record: DataType,
+  {
+    width,
+    height,
+    avoidTopLeftOverlay = false,
+  }: { width?: string; height?: string; avoidTopLeftOverlay?: boolean }
+) {
+  const badgePositionClass = avoidTopLeftOverlay ? 'right-2 top-2' : 'left-2 top-2'
+
+  if (record.mime_type.startsWith('image/')) {
+    return (
+      <div className="relative h-full w-full">
+        <div className={`absolute z-10 ${badgePositionClass}`}>
+          <Badge size="xs" radius="sm" variant="filled" color="blue">
+            Image
+          </Badge>
+        </div>
+        <Image
+          src={record.url}
+          fit="cover"
+          alt={record.name + ' ' + record.url}
+          w={width ?? '100%'}
+          h={height ?? '100%'}
+        />
+      </div>
+    )
+  }
+
+  if (record.mime_type.startsWith('video/')) {
+    return (
+      <div className="relative h-full w-full overflow-hidden rounded-md bg-black">
+        <div className={`absolute z-10 ${badgePositionClass}`}>
+          <Badge size="xs" radius="sm" variant="filled" color="red">
+            Video
+          </Badge>
+        </div>
+        <video
+          src={record.url}
+          controls
+          preload="metadata"
+          className="h-full w-full object-cover"
+          style={{ width: width ?? '100%', height: height ?? '100%' }}
+        />
+      </div>
+    )
+  }
+
+  if (record.mime_type.startsWith('audio/')) {
+    return (
+      <Paper
+        withBorder
+        shadow="xs"
+        radius="md"
+        p="md"
+        className="relative h-full w-full bg-gradient-to-br from-emerald-50 to-lime-50"
+      >
+        {avoidTopLeftOverlay ? (
+          <div className="absolute right-2 top-2 z-10">
+            <Badge size="xs" radius="sm" variant="filled" color="green">
+              Audio
+            </Badge>
+          </div>
+        ) : null}
+
+        <Group justify="space-between" mb={8}>
+          {avoidTopLeftOverlay ? (
+            <div />
+          ) : (
+            <Badge size="xs" radius="sm" variant="filled" color="green">
+              Audio
+            </Badge>
+          )}
+          <Text c="dimmed" fz={10} fw={700}>
+            {extensionFromRecord(record)}
+          </Text>
+        </Group>
+
+        <Group gap={8} mb={10} wrap="nowrap">
+          <div className="rounded-md border border-emerald-200 bg-white p-2">
+            {getIconForMime(record.mime_type, 26)}
+          </div>
+          <Text fz="xs" fw={600} lineClamp={1}>
+            {record.name}
+          </Text>
+        </Group>
+
+        <audio src={record.url} controls className="w-full h-8" preload="metadata" />
+      </Paper>
+    )
+  }
+
+  return (
+    <Paper
+      withBorder
+      shadow="xs"
+      radius="md"
+      p="md"
+      className="relative h-full w-full bg-gradient-to-br from-slate-50 to-zinc-100"
+    >
+      {avoidTopLeftOverlay ? (
+        <div className="absolute right-2 top-2 z-10">
+          <Badge size="xs" radius="sm" variant="filled" color="gray">
+            {mediaTypeFromMime(record.mime_type)}
+          </Badge>
+        </div>
+      ) : null}
+
+      <Group justify="space-between" mb={8}>
+        {avoidTopLeftOverlay ? (
+          <div />
+        ) : (
+          <Badge size="xs" radius="sm" variant="filled" color="gray">
+            {mediaTypeFromMime(record.mime_type)}
+          </Badge>
+        )}
+        <Text c="dimmed" fz={10} fw={700}>
+          {extensionFromRecord(record)}
+        </Text>
+      </Group>
+
+      <div className="flex h-full min-h-[110px] flex-col items-center justify-center gap-3 text-center">
+        <div className="rounded-md border border-slate-200 bg-white p-3">
+          {getIconForMime(record.mime_type, 30)}
+        </div>
+        <Text fz="xs" fw={600} c="dimmed" lineClamp={2}>
+          {record.name}
+        </Text>
+      </div>
+    </Paper>
   )
 }
 
@@ -103,7 +235,7 @@ export default function page(props: PageProps) {
   const breadcrumbs = [
     {
       title: 'Dashboard',
-      href: route('dashboard.view').path,
+      href: urlFor('dashboard.view'),
     },
     {
       title: pageTitle,
@@ -118,7 +250,7 @@ export default function page(props: PageProps) {
   const canDelete = props.user?.permissions.includes(`${basePerm}.delete`)
 
   // State
-  const searchFilter = useSearchFilter(`${baseRoute}.index` as RouteNameType)
+  const searchFilter = useSearchFilter(`${baseRoute}.index`)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [selected, setSelected] = useState<DataType>()
   const [selectedRecords, setSelectedRecords] = useState<DataType[]>([])
@@ -145,8 +277,8 @@ export default function page(props: PageProps) {
       onClose()
       searchFilter.doSearch()
     },
-    deleteParam: { params: { id: selected?.id } },
-    routeName: `${baseRoute}.destroy` as RouteNameType,
+    deleteParam: { id: selected?.id ?? '' },
+    routeName: `${baseRoute}.destroy`,
     title: (
       <div className="flex items-center gap-2">
         <Trash2 className="size-5 text-red-400" />
@@ -166,7 +298,7 @@ export default function page(props: PageProps) {
       setSelectedRecords([])
       searchFilter.doSearch()
     },
-    routeName: `${baseRoute}.bulkDestroy` as RouteNameType,
+    routeName: `${baseRoute}.bulkDestroy`,
     deleteParam: { params: {} }, // For bulk delete we delete using id in body
     title: <GenericDeleteTitle bulk={true} />,
     message: (
@@ -232,8 +364,8 @@ export default function page(props: PageProps) {
               <Table.Td className="break-all">
                 <div className="flex flex-wrap gap-2">
                   {record.tags?.map((tag) => (
-                    <Badge key={tag} variant="light">
-                      {tag}
+                    <Badge key={tag.id} variant="light">
+                      {tag.name}
                     </Badge>
                   ))}
                 </div>
@@ -282,16 +414,16 @@ export default function page(props: PageProps) {
       title: 'Preview',
       toggleable: true,
       render: (record) => {
-        return previewItem(record, { width: '200px', height: '200px' })
+        return previewItem(record, { width: '450px', height: '300px' })
       },
-      width: 250,
+      width: 450,
     },
     {
       accessor: 'name',
       title: 'Name',
       toggleable: true,
       sortable: true,
-      width: 350,
+      width: 200,
       filter: () => (
         <FilterText
           column={'name'}
@@ -324,14 +456,14 @@ export default function page(props: PageProps) {
       filtering: searchFilter.searchBy.mime_type ? true : false,
     },
     {
-      accessor: 'tags',
+      accessor: 'tags.name',
       title: 'Tags',
       toggleable: true,
       sortable: true,
       width: 160,
       filter: () => (
         <FilterText
-          column={'tags'}
+          column={'tags.name'}
           searchFilter={searchFilter}
           label="Tags"
           description="Filter by tags"
@@ -340,13 +472,13 @@ export default function page(props: PageProps) {
       render: (record) => (
         <div className="flex flex-wrap gap-2">
           {record.tags?.map((tag) => (
-            <Badge key={tag} variant="light">
-              {tag}
+            <Badge key={tag.id} variant="light">
+              {tag.name}
             </Badge>
           ))}
         </div>
       ),
-      filtering: searchFilter.searchBy.tags ? true : false,
+      filtering: searchFilter.searchBy['tags.name'] ? true : false,
     },
     {
       accessor: 'size',
@@ -454,7 +586,6 @@ export default function page(props: PageProps) {
       columns,
       key,
     })
-  const thereIsHiddenColumn = effectiveColumns.some((col) => col.hidden)
   const resetColumnState = () => {
     resetColumnsToggle()
     resetColumnsWidth()
@@ -465,88 +596,58 @@ export default function page(props: PageProps) {
     <DashboardLayout breadcrumbs={breadcrumbs}>
       <Head title={pageTitle} />
       <div className="space-y-4">
-        <Paper p="md" shadow="md" radius="md" withBorder mb={'md'}>
-          <Group justify="space-between" mb="md">
-            <Group>
-              <Button
-                color="red"
-                leftSection={<IconTrash size={18} />}
-                onClick={confirmBulkDel}
-                disabled={selectedRecords.length === 0 || !canDelete}
-              >
-                {selectedRecords.length
-                  ? `Delete Selected (${selectedRecords.length})`
-                  : 'Batch Delete'}
-              </Button>
-            </Group>
-            <Group ms={'auto'} gap={'xs'} justify="flex-end">
-              <SegmentedControl
-                value={viewMode}
-                onChange={(value) => setViewMode(value as 'list' | 'grid')}
-                data={[
-                  {
-                    label: (
-                      <Center>
-                        <IconList size={16} />
-                        <Box ml={5}>List</Box>
-                      </Center>
-                    ),
-                    value: 'list',
-                  },
-                  {
-                    label: (
-                      <Center>
-                        <IconLayoutGrid size={16} />
-                        <Box ml={5}>Gallery</Box>
-                      </Center>
-                    ),
-                    value: 'grid',
-                  },
-                ]}
-              />
+        <DashboardTableButtons
+          searching={searching}
+          canResetSearch={searchFilter.searchParamIsSet}
+          selectedRecords={selectedRecords}
+          canDelete={canDelete}
+          showAddButton={false}
+          addHref={urlFor(`${baseRoute}.create`)}
+          onToggleSearch={handleSearchingButton}
+          onBulkDelete={confirmBulkDel}
+          onResetFilter={() => {
+            searchFilter.resetSearch()
+          }}
+          onResetColumns={resetColumnState}
+          labels={{
+            noDeletePermission: "You don't have permission to delete media",
+            bulkDeleteMin: 'Select at least 1 record to delete',
+          }}
+        />
 
-              <Group gap={'xs'} justify="flex-end">
-                <TextInput
-                  placeholder="Search..."
-                  leftSection={
-                    searchFilter.isFetching ? <Loader size={16} /> : <IconSearch size={16} />
-                  }
-                  value={searchFilter.search}
-                  onChange={(e) => {
-                    searchFilter.onSearch(e.currentTarget.value)
-                  }}
-                  className={cn(classes.searchInput, {
-                    [classes.appearAnimation]: searching,
-                    [classes.disappearAnimation]: !searching,
-                  })}
-                />
+        <DashboardSearchPanel
+          opened={searching}
+          value={searchFilter.search}
+          onChange={(value) => searchFilter.onSearch(value)}
+          placeholder={`Search ${pageTitle.toLowerCase()}...`}
+        />
 
-                <MantineTooltip label="Search" withArrow>
-                  <ActionIcon
-                    variant="outline"
-                    size={'lg'}
-                    onClick={handleSearchingButton}
-                    loading={searchFilter.isFetching}
-                  >
-                    <IconSearch />
-                  </ActionIcon>
-                </MantineTooltip>
-              </Group>
-
-              {viewMode === 'list' && (
-                <MantineTooltip label="Reset columns state" withArrow>
-                  <ActionIcon
-                    variant="outline"
-                    color="gray"
-                    size={'lg'}
-                    onClick={resetColumnState}
-                    disabled={!thereIsHiddenColumn}
-                  >
-                    <ListRestart />
-                  </ActionIcon>
-                </MantineTooltip>
-              )}
-            </Group>
+        <Paper p="xs" shadow="md" radius="md" withBorder>
+          <Group mb={'md'}>
+            <SegmentedControl
+              value={viewMode}
+              onChange={(value) => setViewMode(value as 'list' | 'grid')}
+              data={[
+                {
+                  label: (
+                    <Center>
+                      <IconList size={16} />
+                      <Box ml={5}>List</Box>
+                    </Center>
+                  ),
+                  value: 'list',
+                },
+                {
+                  label: (
+                    <Center>
+                      <IconLayoutGrid size={16} />
+                      <Box ml={5}>Gallery</Box>
+                    </Center>
+                  ),
+                  value: 'grid',
+                },
+              ]}
+            />
           </Group>
 
           {viewMode === 'list' ? (
@@ -588,7 +689,7 @@ export default function page(props: PageProps) {
                     <Card.Section>
                       <AspectRatio ratio={1 / 1}>
                         <div className="relative w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                          {previewItem(record, {})}
+                          {previewItem(record, { avoidTopLeftOverlay: true })}
 
                           <div className="absolute top-2 left-2 z-10">
                             <Checkbox

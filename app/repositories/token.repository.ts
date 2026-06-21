@@ -1,6 +1,6 @@
 import Token from '#models/token'
-import User from '#models/user'
-import { TokenType } from '#types/models'
+import type User from '#models/user'
+import type { TokenType } from '#types/models'
 
 import stringHelpers from '@adonisjs/core/helpers/string'
 import { DateTime } from 'luxon'

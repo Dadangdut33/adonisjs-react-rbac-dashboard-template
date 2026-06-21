@@ -1,10 +1,5 @@
-import ProfileController from '#controllers/profile.controller'
-import Role from '#models/role'
-
-import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
 import { router } from '@inertiajs/core'
 import { Head } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import { FileButton, Textarea } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useModals } from '~/components/core/modal/modal-hooks'
@@ -16,9 +11,14 @@ import { Label } from '~/components/ui/label'
 import { useAvatar } from '~/hooks/use_avatar'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import DashboardLayout from '~/layouts/dashboard'
+import { urlFor } from '~/lib/client'
 import { checkForm } from '~/lib/utils'
+import { InertiaProps } from '~/types'
+import type { Data } from '~data'
 
-export default function Profile(props: SharedProps & InferPageProps<ProfileController, 'view'>) {
+type PageProps = InertiaProps<{ user: Data.User; profile: Data.Profile; roles: Data.Role[] }>
+
+export default function Profile(props: PageProps) {
   const { user, profile, roles = [] } = props
   const { ConfirmAddModal } = useModals()
   const avatar = useAvatar()
@@ -33,9 +33,9 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
     },
   })
 
-  const mutation = useGenericMutation('PATCH', route('profile.update').path, {
+  const mutation = useGenericMutation('PATCH', urlFor('profile.update'), {
     onSuccess: () => {
-      router.visit(route('profile.view').path)
+      router.visit(urlFor('profile.view'))
     },
   })
 
@@ -51,7 +51,7 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
       breadcrumbs={[
         {
           title: 'Dashboard',
-          href: route('dashboard.view').path,
+          href: urlFor('dashboard.view'),
         },
         {
           title: 'Profile',
@@ -105,7 +105,7 @@ export default function Profile(props: SharedProps & InferPageProps<ProfileContr
               <div className="space-y-2">
                 <Label htmlFor="roles">Roles</Label>
                 <div className="flex flex-wrap gap-2">
-                  {roles.map((role: Role) => (
+                  {roles.map((role: Data.Role) => (
                     <span
                       key={role.id}
                       className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-sm font-medium"

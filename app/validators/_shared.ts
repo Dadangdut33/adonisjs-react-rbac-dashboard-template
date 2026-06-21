@@ -25,5 +25,5 @@ export const transformUsername = (value: string) => {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '')
-    .replace(/[^\p{L}\p{M}.'\-() ]/gu, '')
+    .replace(/[^\p{L}\p{M}\p{N}.'\-() ]/gu, '')
 }

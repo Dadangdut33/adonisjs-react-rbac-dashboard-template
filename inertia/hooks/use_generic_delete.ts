@@ -1,11 +1,12 @@
-import { BaseAPIResponse } from '#types/api'
-import { RouteNameType } from '#types/app'
+import type { BaseAPIResponse } from '#types/api'
+import type { RouteNameType } from '#types/app'
 
-import { route } from '@izzyjs/route/client'
-import { UseMutationOptions } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
-import React, { useEffect } from 'react'
+import type { UseMutationOptions } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
+import type React from 'react'
+import { useEffect } from 'react'
 import { useModals } from '~/components/core/modal/modal-hooks'
+import { urlFor } from '~/lib/client'
 
 import { useGenericMutation } from './use_generic_mutation'
 
@@ -21,12 +22,7 @@ type Props<TData = any, TResponse extends BaseAPIResponse = BaseAPIResponse> = {
   extra?: string
   enablePin?: boolean
   routeName: RouteNameType
-  deleteParam: {
-    params: Record<string, any>
-    qs?: Record<string, any>
-    prefix?: string
-    hash?: string
-  }
+  deleteParam: any
 }
 
 export function useDeleteGeneric<T>({
@@ -45,20 +41,16 @@ export function useDeleteGeneric<T>({
 }: Props<T>) {
   const { ConfirmDeleteModal } = useModals()
 
-  const deleteMutation = useGenericMutation(
-    'DELETE',
-    route(routeName as any, deleteParam as any).path,
-    {
-      onSuccess: (dataRes, variables, onMutateResult, context) => {
-        onSuccess && onSuccess(dataRes, variables, onMutateResult, context)
-        onClose()
-      },
-      onError(error, variables, onMutateResult, context) {
-        onError && onError(error, variables, onMutateResult, context)
-        onClose()
-      },
-    }
-  )
+  const deleteMutation = useGenericMutation('DELETE', urlFor(routeName as any, deleteParam), {
+    onSuccess: (dataRes, variables, onMutateResult, context) => {
+      onSuccess && onSuccess(dataRes, variables, onMutateResult, context)
+      onClose()
+    },
+    onError(error, variables, onMutateResult, context) {
+      onError && onError(error, variables, onMutateResult, context)
+      onClose()
+    },
+  })
 
   const confirmModal = ConfirmDeleteModal({
     name,

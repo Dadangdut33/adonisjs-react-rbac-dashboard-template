@@ -15,6 +15,7 @@ import { Exception } from '@adonisjs/core/exceptions'
 import logger from '@adonisjs/core/services/logger'
 import db from '@adonisjs/lucid/services/db'
 import mail from '@adonisjs/mail/services/main'
+import axios from 'axios'
 import { randomUUID } from 'node:crypto'
 
 @inject()
@@ -195,16 +196,16 @@ export default class AuthService {
   async fetchVerifyCFToken(token: string) {
     const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 
-    const res = await fetch(url, {
-      method: 'POST',
-      body: `secret=${env.get('TURNSTILE_SECRET')}&response=${token}`,
-      headers: {
-        'content-type': 'application/x-www-form-urlencoded',
-      },
-    })
-
-    const data = (await res.json()) as TurnstileResponse
-    return data.success
+    const res = await axios.post<TurnstileResponse>(
+      url,
+      `secret=${env.get('TURNSTILE_SECRET')}&response=${token}`,
+      {
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+      }
+    )
+    return !!res.data?.success
   }
 
   async verifyCFToken(token: string) {

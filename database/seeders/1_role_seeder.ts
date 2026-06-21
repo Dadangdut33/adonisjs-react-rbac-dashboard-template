@@ -17,11 +17,13 @@ export default class extends BaseSeeder {
         // id: Roles.ADMIN,
         name: 'Admin',
         is_protected: true,
+        can_access_all_media_tags: true,
       },
       {
         // id: Roles.SUPER_ADMIN,
         name: 'Super Admin',
         is_protected: true,
+        can_access_all_media_tags: true,
       },
     ]
 

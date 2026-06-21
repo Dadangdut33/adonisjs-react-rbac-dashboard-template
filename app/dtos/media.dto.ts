@@ -1,5 +1,7 @@
 import Media from '#models/media'
 
+import { TagDto } from './tag.dto.js'
+
 export class MediaDto {
   readonly id: string
   readonly drive_key: string
@@ -8,7 +10,7 @@ export class MediaDto {
   readonly extension: string
   readonly size: number
   readonly hash: string
-  readonly tags: string[] | null
+  readonly tags?: TagDto[]
   readonly created_at: string // dto needs to be string
   readonly updated_at: string
   url?: string
@@ -21,7 +23,7 @@ export class MediaDto {
     this.extension = media.extension
     this.size = media.size
     this.hash = media.hash
-    this.tags = media.tags
+    this.tags = media.tags ? TagDto.collect(media.tags) : undefined
     this.created_at = media.created_at ? media.created_at.toString() : ''
     this.updated_at = media.updated_at ? media.updated_at.toString() : ''
     this.url = media.url

@@ -1,5 +1,5 @@
-import { LazyImport } from '@adonisjs/bouncer/types'
 import router from '@adonisjs/core/services/router'
+import type { LazyImport } from '@adonisjs/core/types/common'
 
 import { middleware } from '../kernel.js'
 
@@ -10,6 +10,7 @@ const ProfileController = () => import('#controllers/profile.controller')
 const RoleController = () => import('#controllers/role.controller')
 const ActivityLogController = () => import('#controllers/activity_log.controller')
 const MediaController = () => import('#controllers/media.controller')
+const BlogController = () => import('#controllers/blog.controller')
 
 type ControllerImport<T> = T | LazyImport<T>
 
@@ -49,8 +50,16 @@ router
     mapGenericRoutes('/permissions', PermissionController, 'permission', true)
     mapGenericRoutes('/roles', RoleController, 'role', true)
     mapGenericRoutes('/media', MediaController, 'media', true)
+    mapGenericRoutes('/blogs', BlogController, 'blog', true)
+    router.post('/blogs/rollback', [BlogController, 'rollbackRevision']).as('blog.rollback')
+    router
+      .post('/blogs/rollback-fields', [BlogController, 'rollbackRevisionFields'])
+      .as('blog.rollbackFields')
 
     router.get('/activity-log', [ActivityLogController, 'viewList']).as('activity_log.index')
+    router
+      .delete('/activity-log/clear-range', [ActivityLogController, 'clearRange'])
+      .as('activity_log.clearRange')
   })
   .use([middleware.auth(), middleware.verify_email()])
   .prefix('/dashboard')

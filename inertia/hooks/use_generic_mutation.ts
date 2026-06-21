@@ -1,8 +1,8 @@
-import { BaseAPIResponse } from '#types/api'
+import type { BaseAPIResponse } from '#types/api'
 
 import { router } from '@inertiajs/react'
-import { UseMutationOptions, UseMutationResult, useMutation } from '@tanstack/react-query'
-import { AxiosError, AxiosHeaders, Method, RawAxiosRequestHeaders } from 'axios'
+import { type UseMutationOptions, type UseMutationResult, useMutation } from '@tanstack/react-query'
+import type { AxiosError, AxiosHeaders, Method, RawAxiosRequestHeaders } from 'axios'
 import { NotifyError, NotifySuccess } from '~/components/core/notify'
 import { api } from '~/lib/axios'
 

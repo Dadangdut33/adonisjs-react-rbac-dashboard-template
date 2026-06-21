@@ -13,7 +13,8 @@ import { Env } from '@adonisjs/core/env'
 export default await Env.create(new URL('../', import.meta.url), {
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   PORT: Env.schema.number(),
-  APP_KEY: Env.schema.string(),
+  APP_ENCRYPTOR: Env.schema.enum(['gcm', 'legacy'] as const),
+  APP_KEY: Env.schema.secret(),
   APP_URL: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
   VITE_APP_NAME: Env.schema.string.optional(),
@@ -59,11 +60,14 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
-  DB_HOST: Env.schema.string({ format: 'host' }),
-  DB_PORT: Env.schema.number(),
-  DB_USER: Env.schema.string(),
-  DB_PASSWORD: Env.schema.string.optional(),
-  DB_DATABASE: Env.schema.string(),
+  DB_CONNECTION: Env.schema.enum(['postgres', 'turso'] as const),
+
+  // Postgres
+  DB_POSTGRES_URL: Env.schema.string.optional(),
+  DB_POSTGRES_CA: Env.schema.string.optional(),
+
+  // Turso
+  DB_TURSO_URL: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------
@@ -86,7 +90,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   SUPPORT_EMAIL: Env.schema.string.optional(),
 
   SMTP_HOST: Env.schema.string.optional(),
-  SMTP_PORT: Env.schema.string.optional(),
+  SMTP_PORT: Env.schema.number.optional(),
   SMTP_USERNAME: Env.schema.string.optional(),
   SMTP_PASSWORD: Env.schema.string.optional(),
   SMTP_FROM: Env.schema.string.optional(),

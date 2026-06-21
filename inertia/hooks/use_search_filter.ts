@@ -1,10 +1,10 @@
-import { RouteNameType } from '#types/app'
+import type { RouteNameType } from '#types/app'
 
 import { router } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import { useDebouncedCallback } from '@mantine/hooks'
-import { DataTableSortStatus } from 'mantine-datatable'
+import type { DataTableSortStatus } from 'mantine-datatable'
 import { useEffect, useState } from 'react'
+import { urlFor } from '~/lib/client'
 
 type SearchFilerProps<T> = {
   isFetching: boolean
@@ -20,6 +20,7 @@ type SearchFilerProps<T> = {
   onQueryTable: (queryKey: string, queryValue: any) => void
   sortStatus: DataTableSortStatus<T>
   onSortStatus: (e: DataTableSortStatus<T>) => void
+  resetSearch: () => void
 }
 
 export default function useSearchFilter<T>(
@@ -67,7 +68,7 @@ export default function useSearchFilter<T>(
     if (sort) {
       const direction = sort.startsWith('-') ? 'desc' : 'asc'
       const columnAccessor = sort.replace('-', '')
-      setSortStatus({ columnAccessor: columnAccessor as any, direction })
+      setSortStatus({ columnAccessor: columnAccessor, direction })
     }
   }, [])
 
@@ -90,7 +91,7 @@ export default function useSearchFilter<T>(
     }
 
     const payload = Object.fromEntries(queryParams)
-    router.get(route(endpoint as any).path as any, payload, {
+    router.get(urlFor(endpoint as any), payload, {
       preserveState: true,
       replace: true, // Prevents flooding history stack
     })
@@ -130,6 +131,20 @@ export default function useSearchFilter<T>(
   const onPageChange = (page: number) => onQueryTable('page', page)
   const onRecordsPerPage = (perPage: number) => onQueryTable('per_page', perPage)
 
+  const resetSearch = () => {
+    setSearch('')
+    setSearchBy({})
+    setSortStatus({ columnAccessor: defaultColumnSort as any, direction: 'desc' })
+    router.get(
+      urlFor(endpoint as any),
+      {},
+      {
+        preserveState: true,
+        replace: true, // Prevents flooding history stack
+      }
+    )
+  }
+
   return {
     isFetching,
     searchParamIsSet,
@@ -144,5 +159,6 @@ export default function useSearchFilter<T>(
     onPageChange,
     onRecordsPerPage,
     onQueryTable,
+    resetSearch,
   }
 }

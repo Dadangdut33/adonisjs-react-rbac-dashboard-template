@@ -22,7 +22,7 @@ export const authValidatorMessage = new SimpleMessagesProvider({
   'cf_token.required': 'The captcha field is required',
 })
 
-export const registerValidator = vine.compile(
+export const registerValidator = vine.create(
   vine.object({
     full_name: vine.string().minLength(3).maxLength(128).trim().transform(transformFullName),
     username: vine.string().minLength(3).maxLength(128).trim().transform(transformUsername),
@@ -37,28 +37,29 @@ export const registerValidator = vine.compile(
   })
 )
 
-export const loginValidator = vine.compile(
+export const loginValidator = vine.create(
   vine.object({
     email: vine.string().email().normalizeEmail().trim(),
     password: vine.string().minLength(8).maxLength(255).regex(passwordRegex),
+    remember_me: vine.boolean(),
     cf_token,
   })
 )
 
-export const askEmailVerifyValidator = vine.compile(
+export const askEmailVerifyValidator = vine.create(
   vine.object({
     cf_token,
   })
 )
 
-export const askResetPasswordValidator = vine.compile(
+export const askResetPasswordValidator = vine.create(
   vine.object({
     email: emailValidator,
     cf_token,
   })
 )
 
-export const resetPasswordValidator = vine.compile(
+export const resetPasswordValidator = vine.create(
   vine.object({
     email: emailValidator,
     password: vine

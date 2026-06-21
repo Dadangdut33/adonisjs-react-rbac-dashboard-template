@@ -1,11 +1,11 @@
 import { router } from '@inertiajs/core'
-import { route } from '@izzyjs/route/client'
 import { useMutation } from '@tanstack/react-query'
 import { NotifySuccess } from '~/components/core/notify'
 import { api } from '~/lib/axios'
+import { urlFor } from '~/lib/client'
 
 async function logoutRequest() {
-  await api.post(route('auth.logout').path)
+  await api.post(urlFor('auth.logout'))
 }
 
 export function useLogout() {
@@ -13,7 +13,7 @@ export function useLogout() {
     mutationFn: logoutRequest,
     onSuccess: () => {
       NotifySuccess('Success', 'Logged out successfully')
-      router.visit(route('auth.login').path)
+      router.visit(urlFor('auth.login'))
     },
   })
 }

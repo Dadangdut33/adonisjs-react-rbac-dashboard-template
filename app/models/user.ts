@@ -2,6 +2,7 @@ import Tables from '#enums/tables'
 
 import { AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
 import { compose } from '@adonisjs/core/helpers'
 import hash from '@adonisjs/core/services/hash'
 import {
@@ -30,6 +31,9 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 export default class User extends compose(BaseModel, AuthFinder) {
   static namingStrategy = new SnakeCaseNamingStrategy()
   static selfAssignPrimaryKey = true
+  static rememberMeTokens = DbRememberMeTokensProvider.forModel(User, {
+    table: Tables.REMEMBER_ME_TOKEN,
+  })
   static accessTokens = DbAccessTokensProvider.forModel(User, {
     table: Tables.ACCESS_TOKEN,
   })

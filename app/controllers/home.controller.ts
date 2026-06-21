@@ -1,11 +1,24 @@
+import BlogService from '#services/blog.service'
+import { BlogTransformer } from '#transformers/blog.transformer'
+
 import { inject } from '@adonisjs/core'
-import { HttpContext } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 
 @inject()
 export default class HomeController {
-  constructor() {}
+  constructor(protected blogSvc: BlogService) {}
 
   async view({ inertia }: HttpContext) {
-    return inertia.render('home')
+    const blogs = await this.blogSvc.publicIndex({
+      page: 1,
+      perPage: 6,
+      sortBy: 'created_at',
+      sortDirection: 'desc',
+      search: '',
+    })
+
+    return inertia.render('home', {
+      latestBlogs: BlogTransformer.transform(blogs.all()),
+    })
   }
 }

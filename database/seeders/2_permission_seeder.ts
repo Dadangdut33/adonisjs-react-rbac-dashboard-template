@@ -4,9 +4,15 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 export default class extends BaseSeeder {
   async run() {
-    const prefixes = ['user', 'role', 'permission', 'media']
+    const prefixes = ['user', 'role', 'permission', 'media', 'blog']
     const permissionType = ['view', 'create', 'update', 'delete']
-    const manual = ['dashboard.view', 'profile.view', 'profile.update', 'activity_log.view']
+    const manual = [
+      'dashboard.view',
+      'profile.view',
+      'profile.update',
+      'activity_log.view',
+      'activity_log.delete',
+    ]
     const manualMapped = manual.map((manualName) => ({ name: manualName, is_protected: true }))
 
     const permissions = prefixes.flatMap((prefix) =>

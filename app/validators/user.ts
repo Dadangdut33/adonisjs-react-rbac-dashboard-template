@@ -3,7 +3,7 @@ import vine from '@vinejs/vine'
 import { emailValidator, passwordRegex, transformFullName, transformUsername } from './_shared.js'
 
 // Create user by admin or edit user by admin
-export const createEditUserValidator = vine.compile(
+export const createEditUserValidator = vine.create(
   vine.object({
     id: vine.string().uuid().optional(),
     full_name: vine.string().minLength(3).maxLength(128).trim().transform(transformFullName),

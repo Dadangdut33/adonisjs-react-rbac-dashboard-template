@@ -1,0 +1,18 @@
+.inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--mantine-spacing-xl);
+  padding-bottom: var(--mantine-spacing-xl);
+}
+
+@media (max-width: $mantine-breakpoint-xs) {
+  .inner {
+    flex-direction: column;
+  }
+
+  .links {
+    margin-top: var(--mantine-spacing-md);
+  }
+}

@@ -69,3 +69,13 @@ export const randomPasswordThrottle = limiter.define('random_password', () => {
       error.setMessage('Too many requests, please try again later')
     })
 })
+
+export const fetchMetadataThrottle = limiter.define('fetch_metadata', () => {
+  return limiter
+    .allowRequests(100)
+    .every('1 minute')
+    .blockFor('3 minute')
+    .limitExceeded((error) => {
+      error.setMessage('Too many requests, please try again later')
+    })
+})

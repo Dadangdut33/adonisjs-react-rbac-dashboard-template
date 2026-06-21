@@ -1,8 +1,8 @@
 import PreDefinedRolesId from '#enums/roles'
-import User from '#models/user'
-import { UserPayload } from '#types/inferred'
+import type User from '#models/user'
+import type { UserPayload } from '#types/inferred'
 
-import { HttpContext } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 
 import CustomBasePolicy from './custom_base_policy.js'
 

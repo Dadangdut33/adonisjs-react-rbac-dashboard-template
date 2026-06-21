@@ -1,5 +1,5 @@
 import Profile from '#models/profile'
-import { UpdateProfilePayload } from '#types/inferred'
+import type { UpdateProfilePayload } from '#types/inferred'
 
 import BaseRepository from './_base_repository.js'
 

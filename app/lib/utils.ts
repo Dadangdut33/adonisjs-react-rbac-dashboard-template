@@ -1,10 +1,10 @@
-import { QueryBuilderParams, RequestError } from '#types/app'
+import type { QueryBuilderParams, RequestError } from '#types/app'
 
 import { Exception } from '@adonisjs/core/exceptions'
-import { HttpContext } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 import logger from '@adonisjs/core/services/logger'
 import { randomInt, randomUUID } from 'node:crypto'
-import { IncomingHttpHeaders } from 'node:http'
+import type { IncomingHttpHeaders } from 'node:http'
 
 export function generateRandomPassword(length: number = 24): string {
   const lowercase = 'abcdefghijklmnopqrstuvwxyz'
@@ -50,6 +50,7 @@ export function mapRequestToQueryParams<T>(request: HttpContext['request']): Que
 
     sortBy,
     sortDirection,
+    filter: request.input('filter', 'all'),
   }
 }
 

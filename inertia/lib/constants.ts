@@ -1,6 +1,5 @@
 export const NAVIGATION_LINKS = [
-  { text: 'Projects', href: '#projects' },
-  { text: 'Blog', href: '#blog' },
+  { text: 'Blog', href: '/blog' },
 ]
 
 export const TIMEOUT_SHORT = 1000 * 60 * 3 // 3 minute

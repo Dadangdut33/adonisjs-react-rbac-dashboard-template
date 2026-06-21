@@ -1,6 +1,7 @@
 'use client'
-import { Link } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
+import { Link } from '@adonisjs/inertia/react'
+import { SharedProps } from '@adonisjs/inertia/types'
+import { usePage } from '@inertiajs/react'
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { ThemeSwitcher } from '~/components/core/theme-switcher'
@@ -11,6 +12,7 @@ import {
   NavigationMenuList,
 } from '~/components/ui/navigation-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
+import { urlFor } from '~/lib/client'
 import { cn } from '~/lib/utils'
 
 // Simple logo component for the navbar
@@ -89,10 +91,8 @@ export interface Navbar01Props extends React.HTMLAttributes<HTMLElement> {
 }
 // Default navigation links
 const defaultNavigationLinks: Navbar01NavLink[] = [
-  { href: '#', label: 'Home', active: true },
-  { href: '#', label: 'xxx' },
-  { href: '#', label: 'yyyy' },
-  { href: '#', label: 'zz' },
+  { href: urlFor('home'), label: 'Home' },
+  { href: urlFor('blog'), label: 'Blog' },
 ]
 
 export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
@@ -100,7 +100,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
     {
       className,
       logo = <Logo />,
-      logoHref = '#',
+      logoHref = urlFor('home'),
       navigationLinks = defaultNavigationLinks,
       onSignInClick,
       onCtaClick,
@@ -110,6 +110,9 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
   ) => {
     const [isMobile, setIsMobile] = useState(false)
     const containerRef = useRef<HTMLElement>(null)
+    const { url, props: pageProps } = usePage<SharedProps>()
+
+    const isAuthenticated = !!pageProps.user
 
     useEffect(() => {
       const checkWidth = () => {
@@ -170,17 +173,17 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                     <NavigationMenuList className="flex-col items-start gap-1">
                       {navigationLinks.map((link, index) => (
                         <NavigationMenuItem key={index} className="w-full">
-                          <button
-                            onClick={(e) => e.preventDefault()}
+                          <Link
+                            href={link.href}
                             className={cn(
                               'flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline',
-                              link.active
+                              url === link.href
                                 ? 'bg-accent text-accent-foreground'
                                 : 'text-foreground/80'
                             )}
                           >
                             {link.label}
-                          </button>
+                          </Link>
                         </NavigationMenuItem>
                       ))}
                     </NavigationMenuList>
@@ -190,30 +193,30 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
             )}
             {/* Main nav */}
             <div className="flex items-center gap-6">
-              <button
-                onClick={(e) => e.preventDefault()}
+              <Link
+                href={logoHref}
                 className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
               >
                 <div className="text-2xl">{logo}</div>
                 <span className="hidden font-bold text-xl sm:inline-block">My website</span>
-              </button>
+              </Link>
               {/* Navigation menu */}
               {!isMobile && (
                 <NavigationMenu className="flex">
                   <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index}>
-                        <button
-                          onClick={(e) => e.preventDefault()}
+                        <Link
+                          href={link.href}
                           className={cn(
                             'group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline',
-                            link.active
+                            url === link.href
                               ? 'bg-accent text-accent-foreground'
                               : 'text-foreground/80 hover:text-foreground'
                           )}
                         >
                           {link.label}
-                        </button>
+                        </Link>
                       </NavigationMenuItem>
                     ))}
                   </NavigationMenuList>
@@ -224,11 +227,19 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
           {/* Right side */}
           <div className="flex items-center gap-3">
             <ThemeSwitcher />
-            <Link href={route('auth.login').path}>
-              <Button size="sm" className="text-sm font-medium px-4 h-9 rounded-md shadow-sm">
-                Sign In
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link href={urlFor('dashboard.view')}>
+                <Button size="sm" className="text-sm font-medium px-4 h-9 rounded-md shadow-sm">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href={urlFor('auth.login')}>
+                <Button size="sm" className="text-sm font-medium px-4 h-9 rounded-md shadow-sm">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

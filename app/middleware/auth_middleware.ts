@@ -2,7 +2,7 @@ import { errors } from '@adonisjs/auth'
 import { Authenticators } from '@adonisjs/auth/types'
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
-import { route } from '@izzyjs/route/client'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 /**
  * Auth middleware is used authenticate HTTP requests and deny
@@ -12,7 +12,7 @@ export default class AuthMiddleware {
   /**
    * The URL to redirect to, when authentication fails
    */
-  redirect_to = route('auth.login').path
+  redirect_to = urlFor('auth.login')
 
   async handle(
     { auth, session }: HttpContext,

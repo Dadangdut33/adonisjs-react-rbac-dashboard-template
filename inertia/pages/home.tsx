@@ -1,6 +1,9 @@
+import { Link } from '@adonisjs/inertia/react'
 import { SharedProps } from '@adonisjs/inertia/types'
 import { Stack } from '@mantine/core'
+import { Button } from '~/components/ui/button'
 import PublicLayout from '~/layouts/public'
+import { urlFor } from '~/lib/client'
 
 export default function Home(props: SharedProps) {
   return (

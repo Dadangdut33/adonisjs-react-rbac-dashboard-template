@@ -1,6 +1,6 @@
 import User from '#models/user'
 import BaseRepository from '#repositories/_base_repository'
-import { UserPayload } from '#types/inferred'
+import type { UserPayload } from '#types/inferred'
 
 export default class UserRepository extends BaseRepository<typeof User> {
   constructor() {

@@ -1,4 +1,3 @@
-import { UserDto } from '#dto/user.dto'
 import {
   generateRandomPassword,
   getMethodActName,
@@ -13,12 +12,14 @@ import MediaService from '#services/media.service'
 import ProfileService from '#services/profile.service'
 import RoleService from '#services/role.service'
 import UserService from '#services/user.service'
+import UserRolesPermissionsCacheService from '#services/user_roles_permissions_cache.service'
+import { UserTransformer } from '#transformers/user.transformer'
 import { PaginationMeta } from '#types/app'
 import { createEditUserValidator } from '#validators/user'
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import { route } from '@izzyjs/route/client'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 @inject()
 export default class UserController {
@@ -27,7 +28,8 @@ export default class UserController {
     protected roleSvc: RoleService,
     protected mediaSvc: MediaService,
     protected profileSvc: ProfileService,
-    protected activityLogSvc: ActivityLogService
+    protected activityLogSvc: ActivityLogService,
+    protected userRolesPermissionsCacheSvc: UserRolesPermissionsCacheService
   ) {}
 
   async viewCreate({ bouncer, inertia, auth }: HttpContext) {
@@ -55,7 +57,7 @@ export default class UserController {
     let roles = await this.roleSvc.listWithCheck(auth.user?.roles || [])
 
     return inertia.render('dashboard/user/createEdit', {
-      data: new UserDto(data),
+      data: UserTransformer.transform(data),
       roles: roles,
     })
   }
@@ -67,7 +69,7 @@ export default class UserController {
     const dataQ = await this.userSvc.index(q)
 
     return inertia.render('dashboard/user/list', {
-      data: UserDto.collect(dataQ.all()),
+      data: UserTransformer.transform(dataQ.all()),
       meta: dataQ.getMeta() as PaginationMeta,
     })
   }
@@ -92,6 +94,7 @@ export default class UserController {
         await bouncer.with('UserPolicy').authorize('update', payload, request)
 
         const updated = await this.userSvc.update(payload)
+        await this.userRolesPermissionsCacheSvc.invalidateForUserIds([updated.id])
         await this.activityLogSvc.log(
           auth.user!.id,
           'update_user',
@@ -105,7 +108,7 @@ export default class UserController {
       return response.status(200).json({
         status: 'success',
         message: `Successfully ${getMethodActName(request)} user.`,
-        redirect_to: route(`user.index`).path,
+        redirect_to: urlFor(`user.index`),
       })
     } catch (error) {
       return returnError(response, error, `USER_${getMethodActName(request)}`, { logErrors: true })
@@ -122,6 +125,7 @@ export default class UserController {
       await user.load('profile')
       const profile = user.profile
 
+      await this.userRolesPermissionsCacheSvc.invalidateForUserIds([user.id])
       await this.userSvc.deleteUser(id)
       await this.activityLogSvc.log(
         auth.user!.id,
@@ -153,6 +157,7 @@ export default class UserController {
       const users = await this.userSvc.findByIds(ids)
       const emailsIds = users.map((u) => `- ${u.email} [${u.id}]`).join('\n')
 
+      await this.userRolesPermissionsCacheSvc.invalidateForUserIds(users.map((user) => user.id))
       await this.userSvc.deleteUsers(ids)
       await this.activityLogSvc.log(
         auth.user!.id,

@@ -1,11 +1,8 @@
-import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
-import type AuthController from '@app/controllers/auth.controller.ts'
 import { Head } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import { Loader, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { Turnstile } from '@marsidev/react-turnstile'
-import { useState } from 'react'
+import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile'
+import { useRef, useState } from 'react'
 import {
   PasswordPopover,
   PasswordStrengthDropdown,
@@ -18,12 +15,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Input } from '~/components/ui/input'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
+import { urlFor } from '~/lib/client'
 import { PASS_REGEX } from '~/lib/constants'
 import { checkFormWithCaptcha, cn } from '~/lib/utils'
+import { InertiaProps } from '~/types'
 
-export default function Page(
-  props: SharedProps & InferPageProps<AuthController, 'viewResetPassword'>
-) {
+export default function Page(props: InertiaProps<AuthProps & { token: string; email: string }>) {
+  const turnstileRef = useRef<TurnstileInstance | null>(null)
   const form = useForm({
     initialValues: {
       email: props.email,
@@ -45,10 +43,19 @@ export default function Page(
     },
   })
   const { ConfirmModal } = useModals()
-  const mutation = useGenericMutation('POST', route('auth.resetPassword.post').path, {
+
+  const resetCaptcha = () => {
+    form.setFieldValue('cf_token', '')
+    turnstileRef.current?.reset()
+  }
+
+  const mutation = useGenericMutation('POST', urlFor('auth.resetPassword.post'), {
     onError(error, _variables, _context) {
       if (error.response?.data.form_errors) {
         form.setErrors(error.response?.data.form_errors)
+      }
+      if (props.site_key && !props.bypass_captcha) {
+        resetCaptcha()
       }
     },
   })
@@ -156,6 +163,7 @@ export default function Page(
               {props.site_key && !props.bypass_captcha && (
                 <>
                   <Turnstile
+                    ref={turnstileRef}
                     className="mx-auto"
                     siteKey={props.site_key}
                     onSuccess={(cf_token) => form.setFieldValue('cf_token', cf_token)}

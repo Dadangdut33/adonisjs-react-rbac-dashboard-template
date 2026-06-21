@@ -1,11 +1,11 @@
-import { BaseAPIResponse } from '#types/api'
+import type { BaseAPIResponse } from '#types/api'
 
-import { route } from '@izzyjs/route/client'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '~/lib/axios'
+import { urlFor } from '~/lib/client'
 
 async function fetchAvatar(): Promise<string | null> {
-  const { data } = await api.get<BaseAPIResponse<string>>(route('api.v1.me.avatar').path)
+  const { data } = await api.get<BaseAPIResponse<string>>(urlFor('api.v1.me.avatar'))
 
   return data.data ?? null
 }

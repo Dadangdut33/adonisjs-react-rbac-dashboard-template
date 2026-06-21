@@ -13,7 +13,7 @@ import {
 
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import { route } from '@izzyjs/route/client'
+import { urlFor } from '@adonisjs/core/services/url_builder'
 
 @inject()
 export default class AuthController {
@@ -76,7 +76,7 @@ export default class AuthController {
       const { user } = await this.service.login(payload)
 
       // *important: set the current login user to web
-      await auth.use('web').login(user)
+      await auth.use('web').login(user, payload.remember_me)
 
       // if user is not verified, redirect to verify email page
       if (!user.is_email_verified)
@@ -84,14 +84,14 @@ export default class AuthController {
           status: 'success',
           message: 'Login successful, but need to verify email',
           data: { user: user.toJSON() },
-          redirect_to: route('auth.verifyEmail').path,
+          redirect_to: urlFor('auth.verifyEmail'),
         })
 
       return response.status(200).json({
         status: 'success',
         message: 'Login successful',
         data: { user: user.toJSON() },
-        redirect_to: route('dashboard.view').path,
+        redirect_to: urlFor('dashboard.view'),
       })
     } catch (error) {
       return returnError(response, error, 'AUTH_LOGIN_USER', { logErrors: true })
@@ -124,7 +124,7 @@ export default class AuthController {
         status: 'success',
         message: 'User registered successfully, please login and verify your email to continue',
         data: { accessToken, user: user.toJSON() },
-        redirect_to: route('auth.login').path,
+        redirect_to: urlFor('auth.login'),
       })
     } catch (error) {
       return returnError(response, error, 'AUTH_REGISTER_USER', { logErrors: true })
@@ -152,7 +152,7 @@ export default class AuthController {
         return response.status(200).json({
           status: 'success',
           message: 'User is already verified',
-          redirect_to: route('dashboard.view').path,
+          redirect_to: urlFor('dashboard.view'),
         })
 
       await this.service.requestEmail(user)
@@ -228,7 +228,7 @@ export default class AuthController {
       return response.status(200).json({
         status: 'success',
         message: 'Password reset successfully, please login with your new password',
-        redirect_to: route('auth.login').path,
+        redirect_to: urlFor('auth.login'),
       })
     } catch (error) {
       return returnError(response, error, 'AUTH_RESET_PASSWORD', { logErrors: true })
@@ -252,7 +252,7 @@ export default class AuthController {
         return response.status(200).json({
           status: 'success',
           message: 'Logged out successfully',
-          redirect_to: route('auth.login').path,
+          redirect_to: urlFor('auth.login'),
         })
       } else {
         const token = user.currentAccessToken

@@ -3,12 +3,12 @@ import { getRequestFingerprint, mapRequestToQueryParams, returnError } from '#li
 import ActivityLogService from '#services/activity_log.service'
 import MediaService from '#services/media.service'
 import PermissionCheckService from '#services/permission_check.service'
+import { MediaTransformer } from '#transformers/media.transformer'
 import { PaginationMeta } from '#types/app'
+import { mediaImportUrlAPIValidator, mediaUploadAPIValidator } from '#validators/media'
 
-import cache from '@adonisjs/cache/services/main'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import logger from '@adonisjs/core/services/logger'
 
 @inject()
 export default class MediaController {
@@ -18,14 +18,14 @@ export default class MediaController {
     protected activityLogSvc: ActivityLogService
   ) {}
 
-  async viewList({ request, bouncer, inertia }: HttpContext) {
+  async viewList({ request, bouncer, inertia, auth }: HttpContext) {
     await bouncer.with('MediaPolicy').authorize('view')
 
     const q = mapRequestToQueryParams(request)
-    const dataQ = await this.mediaSvc.index(q)
+    const dataQ = await this.mediaSvc.indexByUser(auth.user!, q)
 
     return inertia.render('dashboard/media/list', {
-      data: MediaDto.collect(dataQ.all()),
+      data: MediaTransformer.transform(dataQ.all()),
       meta: dataQ.getMeta() as PaginationMeta,
     })
   }
@@ -35,6 +35,8 @@ export default class MediaController {
       await bouncer.with('MediaPolicy').authorize('delete')
 
       const id = params.id
+      await bouncer.with('MediaPolicy').authorize('accessByTag', id)
+
       await this.mediaSvc.delete(id)
       await this.activityLogSvc.log(
         auth.user!.id,
@@ -58,6 +60,8 @@ export default class MediaController {
 
       const { ids } = request.only(['ids'])
       if (!ids || !Array.isArray(ids)) return response.badRequest('Invalid ids provided')
+
+      await bouncer.with('MediaPolicy').authorize('accessBulkByTag', ids)
 
       await this.mediaSvc.deleteBulk(ids)
       await this.activityLogSvc.log(
@@ -87,22 +91,100 @@ export default class MediaController {
       const { id } = params
       if (!id) return response.abort(404)
 
-      const url = await cache.getOrSet({
-        key: 'media-' + id,
-        ttl: '1h',
-        factory: async () => {
-          return await this.mediaSvc.getMediaURLById(id)
-        },
-        onFactoryError(error) {
-          logger.error(error, 'MEDIA_PROXY_FACTORY_ERROR ' + id)
-        },
-      })
-
+      const url = await this.mediaSvc.getMediaURLById(id)
       if (!url) return response.abort(404)
 
       return response.redirect(url)
     } catch (error) {
       return returnError(response, error, `MEDIA_PROXY`, { logErrors: true })
+    }
+  }
+
+  async getMediaListAPI({ request, response, bouncer, auth }: HttpContext) {
+    try {
+      await bouncer.with('MediaPolicy').authorize('view')
+
+      const q = mapRequestToQueryParams(request)
+      const dataQ = await this.mediaSvc.indexByUser(auth.user!, q)
+
+      return response.status(200).json({
+        status: 'success',
+        data: MediaDto.collect(dataQ.all()),
+        meta: dataQ.getMeta() as PaginationMeta,
+      })
+    } catch (error) {
+      return returnError(response, error, 'MEDIA_LIST', {})
+    }
+  }
+
+  async listMediaAPI(ctx: HttpContext) {
+    return this.getMediaListAPI(ctx)
+  }
+
+  async uploadMediaAPI({ request, response, bouncer, auth }: HttpContext) {
+    try {
+      await bouncer.with('MediaPolicy').authorize('create', request)
+
+      const userId = auth.user!.id
+      const isUrlImport = typeof request.input('url') === 'string' && request.input('url').trim()
+      const payload = isUrlImport
+        ? await request.validateUsing(mediaImportUrlAPIValidator)
+        : await request.validateUsing(mediaUploadAPIValidator)
+      const onDupe = payload.tags?.includes('blog-content') ? 'use_old' : 'add'
+
+      const media =
+        'url' in payload
+          ? await this.mediaSvc.importFromUrl(payload.url, {
+              keyPrefix: `${userId}/uploads`,
+              tags: payload.tags,
+              onDupe,
+            })
+          : await this.mediaSvc.upload(payload.file, {
+              keyPrefix: `${userId}/uploads`,
+              tags: payload.tags,
+              onDupe,
+            })
+
+      await this.activityLogSvc.log(
+        userId,
+        'url' in payload ? 'import_media_url' : 'upload_media',
+        `${'url' in payload ? 'Imported media from URL' : 'Uploaded media'} with id:\n\`\`\`\n${media.id}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
+
+      return response.status(201).json({
+        status: 'success',
+        message: 'File uploaded successfully.',
+        data: new MediaDto(media),
+      })
+    } catch (error) {
+      return returnError(response, error, 'MEDIA_UPLOAD', { logValidation: true })
+    }
+  }
+
+  async deleteMediaAPI({ request, response, bouncer, auth }: HttpContext) {
+    try {
+      await bouncer.with('MediaPolicy').authorize('delete')
+
+      const { id } = request.only(['id'])
+      if (!id) return response.badRequest('Media id is required')
+
+      await bouncer.with('MediaPolicy').authorize('accessByTag', id)
+
+      await this.mediaSvc.delete(id)
+      await this.activityLogSvc.log(
+        auth.user!.id,
+        'delete_media',
+        `Deleted media with id:\n\`\`\`\n${id}\n\`\`\``,
+        getRequestFingerprint(request)
+      )
+
+      return response.status(200).json({
+        status: 'success',
+        message: 'Successfully deleted media.',
+      })
+    } catch (error) {
+      return returnError(response, error, 'MEDIA_DELETE', {})
     }
   }
 }

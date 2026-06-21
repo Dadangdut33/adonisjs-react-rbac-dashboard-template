@@ -1,13 +1,12 @@
-import ActivityLogController from '#controllers/activity_log.controller'
-import { RouteNameType } from '#types/app'
+import type { PaginationMeta } from '#types/app'
 
-import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
 import { Head } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import {
   ActionIcon,
+  Alert,
   Badge,
   Box,
+  Button,
   Group,
   JsonInput,
   Loader,
@@ -17,9 +16,11 @@ import {
   Stack,
   Text,
   TextInput,
+  Typography,
 } from '@mantine/core'
+import { DatePicker, type DatesRangeValue } from '@mantine/dates'
 import { useDisclosure } from '@mantine/hooks'
-import { IconEye, IconSearch } from '@tabler/icons-react'
+import { IconAlertTriangle, IconEye, IconSearch, IconTrash } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { ListRestart } from 'lucide-react'
 import {
@@ -29,24 +30,37 @@ import {
   useDataTableColumns,
 } from 'mantine-datatable'
 import { useState } from 'react'
+import { LogMarkdown } from '~/components/core/log/log-markdown'
 import { FilterDate } from '~/components/core/table-filter/date-filter'
 import { FilterText } from '~/components/core/table-filter/text-filter'
-import { SimpleMarkdown } from '~/components/ui/simple-markdown'
+import { TooltipIfTrue } from '~/components/core/tooltipper'
 import classes from '~/css/TableUtils.module.css'
+import { Data } from '~/generated/data'
+import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import useSearchFilter from '~/hooks/use_search_filter'
 import DashboardLayout from '~/layouts/dashboard'
+import { urlFor } from '~/lib/client'
 import { cn } from '~/lib/utils'
+import { InertiaProps } from '~/types'
 
 const baseRoute = 'activity_log'
+const basePerm = 'activity_log'
 const pageTitle = 'Activity Log'
-type PageProps = SharedProps & InferPageProps<ActivityLogController, 'viewList'>
+type PageProps = InertiaProps<{
+  data: Data.ActivityLog[]
+  meta: PaginationMeta
+  log_date_bounds: {
+    oldest: string | null
+    newest: string | null
+  }
+}>
 type DataType = PageProps['data'][number]
 
-export default function page(props: PageProps) {
+export default function Page(props: PageProps) {
   const breadcrumbs = [
     {
       title: 'Dashboard',
-      href: route('dashboard.view').path,
+      href: urlFor('dashboard.view'),
     },
     {
       title: pageTitle,
@@ -56,16 +70,56 @@ export default function page(props: PageProps) {
 
   // Data
   const { data, meta } = props
+  const canDelete = props.user?.permissions.includes(`${basePerm}.delete`) ?? false
+  const hasLogHistory = !!props.log_date_bounds.oldest && !!props.log_date_bounds.newest
+  const clearLogsDisabledReason = !canDelete
+    ? "You don't have permission to clear activity logs"
+    : !hasLogHistory
+      ? 'No activity logs available to clear'
+      : ''
 
   // State
-  const searchFilter = useSearchFilter(`${baseRoute}.index` as RouteNameType)
+  const searchFilter = useSearchFilter(`${baseRoute}.index`)
   const [selectedMetadata, setSelectedMetadata] = useState<any>(null)
   const [metadataModalOpened, { open: openMetadataModal, close: closeMetadataModal }] =
     useDisclosure(false)
+  const [clearModalOpened, { open: openClearModal, close: closeClearModal }] = useDisclosure(false)
   const [searching, setSearching] = useState(false)
+  const [clearDateRange, setClearDateRange] = useState<DatesRangeValue<string>>([null, null])
 
   const handleSearchingButton = () => {
     setSearching((prev) => !prev)
+  }
+
+  const clearRangeMutation = useGenericMutation<{ start_date: string; end_date: string }>(
+    'DELETE',
+    urlFor('activity_log.clearRange'),
+    {
+      doRedirect: false,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      onSuccess: () => {
+        setClearDateRange([null, null])
+        closeClearModal()
+        searchFilter.doSearch(searchFilter.search)
+      },
+    }
+  )
+
+  const handleClearLogs = () => {
+    if (!clearDateRange[0] || !clearDateRange[1]) return
+
+    clearRangeMutation.mutate({
+      start_date: dayjs(clearDateRange[0]).format('YYYY-MM-DD'),
+      end_date: dayjs(clearDateRange[1]).format('YYYY-MM-DD'),
+    })
+  }
+
+  const handleCloseClearModal = () => {
+    setClearDateRange([null, null])
+    closeClearModal()
   }
 
   // Columns
@@ -128,7 +182,11 @@ export default function page(props: PageProps) {
       sortable: true,
       width: 350,
       render: (record) => {
-        return <SimpleMarkdown markdown={record.target} className="log-table" />
+        return (
+          <Typography>
+            <LogMarkdown markdown={record.target} />
+          </Typography>
+        )
       },
       filter: () => (
         <FilterText
@@ -243,6 +301,19 @@ export default function page(props: PageProps) {
               </MantineTooltip>
             </Group>
 
+            <TooltipIfTrue isTrue={!!clearLogsDisabledReason} label={clearLogsDisabledReason}>
+              <Button
+                color="red"
+                variant={!clearLogsDisabledReason ? 'filled' : 'light'}
+                leftSection={<IconTrash size={16} />}
+                onClick={openClearModal}
+                disabled={!!clearLogsDisabledReason}
+                loading={clearRangeMutation.isPending}
+              >
+                Clear by date range
+              </Button>
+            </TooltipIfTrue>
+
             <MantineTooltip label="Reset columns" withArrow>
               <ActionIcon
                 variant="outline"
@@ -275,7 +346,9 @@ export default function page(props: PageProps) {
             onPageChange={(page) => searchFilter.onPageChange(page)}
             onRecordsPerPageChange={(perPage) => searchFilter.onRecordsPerPage(perPage)}
             sortStatus={searchFilter.sortStatus as DataTableSortStatus<DataType>}
-            onSortStatusChange={(sortStatus) => searchFilter.onSortStatus(sortStatus as any)}
+            onSortStatusChange={(sortStatus: DataTableSortStatus<DataType>) =>
+              searchFilter.onSortStatus(sortStatus as DataTableSortStatus<any>)
+            }
           />
         </Paper>
       </div>
@@ -292,6 +365,70 @@ export default function page(props: PageProps) {
           rows={15}
           readOnly
         />
+      </Modal>
+
+      <Modal
+        opened={clearModalOpened}
+        onClose={() => {
+          if (clearRangeMutation.isPending) return
+          closeClearModal()
+        }}
+        title="Clear activity logs"
+        size="md"
+        centered
+      >
+        <Stack>
+          <Alert
+            color="red"
+            variant="light"
+            icon={<IconAlertTriangle size={16} />}
+            title="Destructive action"
+          >
+            This will permanently delete activity logs created within the selected date range.
+          </Alert>
+
+          <DatePicker
+            mx={'auto'}
+            type="range"
+            allowSingleDateInRange
+            value={clearDateRange}
+            onChange={(range) => setClearDateRange(range)}
+            minDate={props.log_date_bounds.oldest ?? undefined}
+            maxDate={props.log_date_bounds.newest ?? undefined}
+          />
+
+          <Text size="sm" c="dimmed">
+            Selected range:{' '}
+            {clearDateRange[0] && clearDateRange[1]
+              ? `${dayjs(clearDateRange[0]).format('YYYY-MM-DD')} to ${dayjs(clearDateRange[1]).format('YYYY-MM-DD')}`
+              : 'Choose a start and end date'}
+          </Text>
+
+          <Text size="sm" c="dimmed">
+            Available logs:{' '}
+            {hasLogHistory
+              ? `${props.log_date_bounds.oldest} to ${props.log_date_bounds.newest}`
+              : 'No activity logs found'}
+          </Text>
+
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              onClick={handleCloseClearModal}
+              disabled={clearRangeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              onClick={handleClearLogs}
+              loading={clearRangeMutation.isPending}
+              disabled={!clearDateRange[0] || !clearDateRange[1]}
+            >
+              Delete logs
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </DashboardLayout>
   )

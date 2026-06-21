@@ -1,5 +1,6 @@
+import { Link } from '@adonisjs/inertia/react'
 import { SharedProps } from '@adonisjs/inertia/types'
-import { Link, usePage } from '@inertiajs/react'
+import { usePage } from '@inertiajs/react'
 import { Image } from '@mantine/core'
 import FlashAlert from '~/components/core/flash'
 

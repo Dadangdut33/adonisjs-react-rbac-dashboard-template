@@ -1,10 +1,10 @@
 'use client'
 
-import { AuthUser } from '#types/models'
+import type { AuthUser } from '#types/models'
 
+import { Link } from '@adonisjs/inertia/react'
 import { SharedProps } from '@adonisjs/inertia/types'
-import { Link, usePage } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
+import { usePage } from '@inertiajs/react'
 import {
   Bot,
   Boxes,
@@ -15,6 +15,7 @@ import {
   Images,
   LayoutDashboard,
   LogOut,
+  Newspaper,
   ShieldUser,
   SquareTerminal,
   User2,
@@ -52,6 +53,7 @@ import {
 } from '~/components/ui/sidebar'
 import { useAvatar } from '~/hooks/use_avatar'
 import { useLogout } from '~/hooks/use_logout'
+import { urlFor } from '~/lib/client'
 import { getInitials } from '~/lib/utils'
 
 type MenuItem = {
@@ -155,7 +157,7 @@ const data = {
   flat: [
     {
       title: 'Dashboard',
-      url: route('dashboard.view').path,
+      url: urlFor('dashboard.view'),
       icon: LayoutDashboard,
       flat: true,
       requiredPermission: 'dashboard.view',
@@ -200,7 +202,7 @@ const data = {
     },
     {
       title: 'Profile',
-      url: route('profile.view').path,
+      url: urlFor('profile.view'),
       icon: UserPen,
       flat: true,
       requiredPermission: 'profile.view',
@@ -209,35 +211,53 @@ const data = {
   management: [
     {
       title: 'Media',
-      url: route('media.index').path,
+      url: urlFor('media.index'),
       icon: Images,
       flat: true,
       requiredPermission: 'media.view',
     },
     {
+      title: 'Blog',
+      url: urlFor('blog.index'),
+      icon: Newspaper,
+      items: [
+        {
+          title: 'Posts',
+          url: urlFor('blog.index'),
+          requiredPermission: 'blog.view',
+        },
+        {
+          title: 'Create Post',
+          url: urlFor('blog.create'),
+          requiredPermission: 'blog.create',
+        },
+      ],
+      requiredPermission: 'blog.view',
+    },
+    {
       title: 'Users',
-      url: route('user.index').path,
+      url: urlFor('user.index'),
       icon: UsersRound,
       flat: true,
       requiredPermission: 'user.view',
     },
     {
       title: 'Roles',
-      url: route('role.index').path,
+      url: urlFor('role.index'),
       icon: Boxes,
       flat: true,
       requiredPermission: 'role.view',
     },
     {
       title: 'Permissions',
-      url: route('permission.index').path,
+      url: urlFor('permission.index'),
       icon: ShieldUser,
       flat: true,
       requiredPermission: 'permission.view',
     },
     {
       title: 'Activity Log',
-      url: route('activity_log.index').path,
+      url: urlFor('activity_log.index'),
       icon: History,
       flat: true,
       requiredPermission: 'activity_log.view',

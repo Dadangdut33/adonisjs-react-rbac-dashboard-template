@@ -42,6 +42,13 @@
   --footer-foreground: oklch(0.88 0 0);
   --footer-foreground-muted: oklch(0.556 0 0);
   --footer-border: oklch(0.25 0 0);
+
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+  --box-shadow-x: 4px;
+  --box-shadow-y: 4px;
+  --shadow: 4px 4px 0 0 var(--border);
 }
 
 .dark {
@@ -82,6 +89,11 @@
   --footer-foreground: oklch(0.88 0 0);
   --footer-foreground-muted: oklch(0.556 0 0);
   --footer-border: oklch(0.2 0 0);
+
+  --main: var(--primary);
+  --main-foreground: var(--primary-foreground);
+  --secondary-background: var(--secondary);
+  --shadow: 4px 4px 0 0 var(--border);
 }
 
 @theme inline {
@@ -126,6 +138,21 @@
   --color-footer-foreground: var(--footer-foreground);
   --color-footer-foreground-muted: var(--footer-foreground-muted);
   --color-footer-border: var(--footer-border);
+
+  --color-main: var(--main);
+  --color-main-foreground: var(--main-foreground);
+  --color-secondary-background: var(--secondary-background);
+
+  --radius-base: var(--radius);
+  --shadow-shadow: var(--shadow);
+  --spacing-boxShadowX: var(--box-shadow-x);
+  --spacing-boxShadowY: var(--box-shadow-y);
+
+  --font-heading: inherit;
+  --font-base: inherit;
+  --font-geist: inherit;
+  --font-geistmono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 @theme {
   /* --font-mono: 'Geist Mono', 'Fira Code', monospace; */

@@ -6,9 +6,9 @@ const base = {
   avatar_id: vine.string().uuid().optional(), // set in backend
 }
 
-export const updateProfileValidator = vine.compile(vine.object(base))
+export const updateProfileValidator = vine.create(vine.object(base))
 
-export const createProfileValidator = vine.compile(
+export const createProfileValidator = vine.create(
   vine.object({
     ...base,
     user_id: vine.string().trim().uuid(),

@@ -1,14 +1,11 @@
-import { InferPageProps, SharedProps } from '@adonisjs/inertia/types'
-import type AuthController from '@app/controllers/auth.controller.ts'
 import { router } from '@inertiajs/core'
 import { Head } from '@inertiajs/react'
-import { route } from '@izzyjs/route/client'
 import { Box, Loader, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useLocalStorage } from '@mantine/hooks'
-import { Turnstile } from '@marsidev/react-turnstile'
+import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile'
 import { IconArrowLeft } from '@tabler/icons-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   PasswordPopover,
   PasswordStrengthDropdown,
@@ -21,11 +18,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Input } from '~/components/ui/input'
 import { useGenericMutation } from '~/hooks/use_generic_mutation'
 import AuthLayout from '~/layouts/auth'
+import { urlFor } from '~/lib/client'
 import { PASS_REGEX } from '~/lib/constants'
 import { checkFormWithCaptcha, cn, transformFullName, transformUsername } from '~/lib/utils'
+import { InertiaProps } from '~/types'
 
 const maxWidth = 'max-w-md'
-export default function Page(props: SharedProps & InferPageProps<AuthController, 'viewRegister'>) {
+export default function Page(props: InertiaProps<AuthProps>) {
+  const turnstileRef = useRef<TurnstileInstance | null>(null)
   const [_, setTimeoutVerifEmailStart] = useLocalStorage<null | number>({
     key: 'timeout_verify_email_start',
     defaultValue: null,
@@ -62,10 +62,18 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
     },
   })
 
-  const mutation = useGenericMutation('POST', route('auth.register.post').path, {
+  const resetCaptcha = () => {
+    form.setFieldValue('cf_token', '')
+    turnstileRef.current?.reset()
+  }
+
+  const mutation = useGenericMutation('POST', urlFor('auth.register.post'), {
     onError(error, _variables, _context) {
       if (error.response?.data.form_errors) {
         form.setErrors(error.response?.data.form_errors)
+      }
+      if (props.site_key && !props.bypass_captcha) {
+        resetCaptcha()
       }
     },
     onSuccess() {
@@ -108,7 +116,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
         <Button
           disabled={mutation.isPending}
           onClick={() => {
-            router.visit(route('auth.login').path)
+            router.visit(urlFor('auth.login'))
           }}
         >
           {mutation.isPending ? <Loader size={16} color="black" /> : <IconArrowLeft stroke={2} />}
@@ -216,6 +224,7 @@ export default function Page(props: SharedProps & InferPageProps<AuthController,
               {props.site_key && !props.bypass_captcha && (
                 <>
                   <Turnstile
+                    ref={turnstileRef}
                     className="mx-auto"
                     siteKey={props.site_key}
                     onSuccess={(cf_token) => form.setFieldValue('cf_token', cf_token)}
